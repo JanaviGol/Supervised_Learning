@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python ML Quest — Classification Metrics!</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4ff;--card:#ffffff;
+  --border:rgba(99,102,241,0.12);--border2:rgba(99,102,241,0.25);
+  --neon-blue:#2563eb;--neon-cyan:#0891b2;--neon-purple:#7c3aed;
+  --neon-pink:#db2777;--neon-green:#16a34a;--neon-yellow:#b45309;
+  --neon-orange:#c2410c;--neon-red:#dc2626;
+  --text:#1e1b4b;--muted:#4b5563;--dim:#9ca3af;
+  --font-head:'Syne',sans-serif;--font-body:'Plus Jakarta Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --glow-blue:0 4px 16px rgba(37,99,235,0.18);
+  --glow-cyan:0 4px 16px rgba(8,145,178,0.18);
+  --glow-green:0 4px 16px rgba(22,163,74,0.18);
+  --glow-orange:0 4px 16px rgba(194,65,12,0.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.85;font-size:16px;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--neon-blue);border-radius:3px;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(37,99,235,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.05) 1px,transparent 1px);background-size:52px 52px;}
+.container-main{max-width:1200px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1;}
+/* XP BAR */
+.xp-strip{position:sticky;top:0;z-index:1000;background:rgba(240,244,255,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);box-shadow:0 2px 12px rgba(37,99,235,0.08);padding:0.65rem 0;}
+.xp-inner{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.xp-label{font-family:var(--font-head);font-weight:800;font-size:0.8rem;color:var(--neon-yellow);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+.xp-bar-wrap{flex:1;min-width:120px;background:rgba(37,99,235,0.1);border-radius:50px;height:10px;border:1px solid var(--border2);overflow:hidden;}
+.xp-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--neon-blue),var(--neon-cyan),var(--neon-green));border-radius:50px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);position:relative;}
+.xp-bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:30px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4));animation:shimmer 2s infinite;}
+@keyframes shimmer{0%,100%{opacity:0;}50%{opacity:1;}}
+.xp-score{font-family:var(--font-head);font-weight:800;font-size:0.9rem;color:var(--neon-yellow);white-space:nowrap;}
+.xp-badges{display:flex;gap:0.4rem;flex-wrap:wrap;}
+.xp-badge{font-size:0.72rem;font-weight:700;padding:0.2rem 0.65rem;border-radius:50px;border:1px solid;white-space:nowrap;transition:0.3s;opacity:0.35;}
+.xp-badge.earned{opacity:1;animation:badgePop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes badgePop{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.xp-badge.b1{border-color:var(--neon-blue);color:var(--neon-blue);}
+.xp-badge.b2{border-color:var(--neon-cyan);color:var(--neon-cyan);}
+.xp-badge.b3{border-color:var(--neon-green);color:var(--neon-green);}
+.xp-badge.b4{border-color:var(--neon-orange);color:var(--neon-orange);}
+.xp-badge.b5{border-color:var(--neon-yellow);color:var(--neon-yellow);}
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:5.5rem 0 4.5rem;background:radial-gradient(ellipse at 20% 50%,rgba(37,99,235,0.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(8,145,178,0.10) 0%,transparent 55%),radial-gradient(ellipse at 60% 80%,rgba(22,163,74,0.07) 0%,transparent 50%),var(--bg);}
+.hero-orbit{position:absolute;top:50%;right:8%;transform:translateY(-50%);width:380px;height:380px;pointer-events:none;}
+.orbit-ring{position:absolute;border-radius:50%;border:1px solid rgba(37,99,235,0.25);top:50%;left:50%;transform:translate(-50%,-50%);}
+.orbit-ring:nth-child(1){width:140px;height:140px;animation:spin 12s linear infinite;}
+.orbit-ring:nth-child(2){width:230px;height:230px;animation:spin 20s linear infinite reverse;border-color:rgba(8,145,178,0.2);}
+.orbit-ring:nth-child(3){width:330px;height:330px;animation:spin 30s linear infinite;border-color:rgba(22,163,74,0.15);}
+.orbit-dot{position:absolute;width:8px;height:8px;border-radius:50%;top:-4px;left:50%;transform:translateX(-50%);}
+.orbit-ring:nth-child(1) .orbit-dot{background:var(--neon-blue);}
+.orbit-ring:nth-child(2) .orbit-dot{background:var(--neon-cyan);}
+.orbit-ring:nth-child(3) .orbit-dot{background:var(--neon-green);}
+.orbit-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.8rem;animation:float 4s ease-in-out infinite;}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes float{0%,100%{transform:translate(-50%,-50%) translateY(0);}50%{transform:translate(-50%,-50%) translateY(-12px);}}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.3);border-radius:50px;padding:0.3rem 1rem;font-size:0.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--neon-blue);margin-bottom:1.5rem;}
+.hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--neon-blue);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+.hero h1{font-family:var(--font-head);font-weight:800;font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.5rem;}
+.hero h1 .line1{display:block;color:#1e1b4b;}
+.hero h1 .line2{display:block;background:linear-gradient(135deg,var(--neon-blue) 0%,var(--neon-cyan) 50%,var(--neon-green) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:1.05rem;color:var(--muted);max-width:560px;margin-bottom:2rem;line-height:1.8;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:2.5rem;}
+.hero-stat-item{text-align:center;}
+.hero-stat-num{font-family:var(--font-head);font-weight:800;font-size:1.8rem;line-height:1;background:linear-gradient(135deg,var(--neon-blue),var(--neon-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-stat-label{font-size:0.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:0.2rem;}
+.hero-cta{display:inline-flex;align-items:center;gap:0.6rem;background:linear-gradient(135deg,var(--neon-blue),var(--neon-cyan));color:white;font-weight:700;font-size:0.95rem;padding:0.8rem 2rem;border-radius:50px;border:none;cursor:pointer;text-decoration:none;box-shadow:0 4px 20px rgba(37,99,235,0.3);transition:0.3s;animation:pulse-btn 2s infinite;}
+@keyframes pulse-btn{0%,100%{box-shadow:0 4px 20px rgba(37,99,235,0.28);}50%{box-shadow:0 4px 32px rgba(37,99,235,0.45);}}
+.hero-cta:hover{transform:translateY(-2px) scale(1.03);color:white;}
+/* QUEST MAP */
+.quest-map{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:2rem;margin:3rem 0;box-shadow:0 4px 24px rgba(37,99,235,0.07);}
+.quest-map-title{font-family:var(--font-head);font-weight:800;font-size:1.1rem;color:var(--neon-yellow);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.quest-map-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(234,179,8,0.3),transparent);}
+.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:0.75rem;}
+.quest-item{display:flex;align-items:center;gap:0.75rem;background:#f8f9ff;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;text-decoration:none;color:var(--muted);font-weight:600;font-size:0.88rem;transition:0.25s;}
+.quest-item:hover{background:rgba(37,99,235,0.07);border-color:rgba(37,99,235,0.3);color:var(--neon-blue);transform:translateX(4px);}
+.quest-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:0.78rem;flex-shrink:0;}
+/* LEVEL CARD */
+.level-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:2.5rem;margin-bottom:2.5rem;position:relative;overflow:hidden;transition:border-color 0.3s,box-shadow 0.3s;}
+.level-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:24px 24px 0 0;}
+.level-card.lvl-blue::before{background:linear-gradient(90deg,var(--neon-blue),var(--neon-cyan));}
+.level-card.lvl-cyan::before{background:linear-gradient(90deg,var(--neon-cyan),var(--neon-green));}
+.level-card.lvl-green::before{background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan));}
+.level-card.lvl-orange::before{background:linear-gradient(90deg,var(--neon-orange),var(--neon-yellow));}
+.level-card.lvl-purple::before{background:linear-gradient(90deg,var(--neon-purple),var(--neon-pink));}
+.level-card.lvl-yellow::before{background:linear-gradient(90deg,var(--neon-yellow),var(--neon-orange));}
+.level-card:hover{box-shadow:0 8px 32px rgba(37,99,235,0.12);}
+.level-card .corner-deco{position:absolute;top:1.2rem;right:1.5rem;font-family:var(--font-head);font-weight:800;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;opacity:0.22;}
+.lv-header{display:flex;align-items:flex-start;gap:1.2rem;margin-bottom:1.8rem;}
+.lv-icon-wrap{width:60px;height:60px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;position:relative;}
+.lv-icon-wrap::after{content:'';position:absolute;inset:-3px;border-radius:18px;border:1px solid;opacity:0.4;}
+.ico-blue{background:rgba(37,99,235,0.12);color:var(--neon-blue);}.ico-blue::after{border-color:var(--neon-blue);}
+.ico-cyan{background:rgba(8,145,178,0.12);color:var(--neon-cyan);}.ico-cyan::after{border-color:var(--neon-cyan);}
+.ico-green{background:rgba(22,163,74,0.12);color:var(--neon-green);}.ico-green::after{border-color:var(--neon-green);}
+.ico-orange{background:rgba(194,65,12,0.12);color:var(--neon-orange);}.ico-orange::after{border-color:var(--neon-orange);}
+.ico-purple{background:rgba(124,58,237,0.12);color:var(--neon-purple);}.ico-purple::after{border-color:var(--neon-purple);}
+.ico-yellow{background:rgba(180,83,9,0.12);color:var(--neon-yellow);}.ico-yellow::after{border-color:var(--neon-yellow);}
+.ico-red{background:rgba(220,38,38,0.12);color:var(--neon-red);}.ico-red::after{border-color:var(--neon-red);}
+.lv-meta{flex:1;}
+.lv-eyebrow{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:0.35rem;}
+.lv-title{font-family:var(--font-head);font-weight:800;font-size:1.55rem;line-height:1.2;color:var(--text);}
+.lv-xp{margin-top:0.4rem;display:inline-flex;align-items:center;gap:0.4rem;background:rgba(180,83,9,0.08);border:1px solid rgba(180,83,9,0.25);border-radius:50px;padding:0.2rem 0.75rem;font-size:0.75rem;font-weight:700;color:var(--neon-yellow);}
+/* CALLOUT */
+.callout{border-radius:14px;padding:1.2rem 1.4rem;margin:1.2rem 0;border:1px solid;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.callout .ct{font-weight:800;font-size:0.95rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;}
+.cb-blue{background:rgba(37,99,235,0.06);border-color:rgba(37,99,235,0.2);}.cb-blue::before{background:var(--neon-blue);}.cb-blue .ct{color:var(--neon-blue);}
+.cb-cyan{background:rgba(8,145,178,0.06);border-color:rgba(8,145,178,0.2);}.cb-cyan::before{background:var(--neon-cyan);}.cb-cyan .ct{color:var(--neon-cyan);}
+.cb-green{background:rgba(22,163,74,0.06);border-color:rgba(22,163,74,0.2);}.cb-green::before{background:var(--neon-green);}.cb-green .ct{color:var(--neon-green);}
+.cb-orange{background:rgba(194,65,12,0.06);border-color:rgba(194,65,12,0.2);}.cb-orange::before{background:var(--neon-orange);}.cb-orange .ct{color:var(--neon-orange);}
+.cb-purple{background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.2);}.cb-purple::before{background:var(--neon-purple);}.cb-purple .ct{color:var(--neon-purple);}
+.cb-yellow{background:rgba(180,83,9,0.06);border-color:rgba(180,83,9,0.2);}.cb-yellow::before{background:var(--neon-yellow);}.cb-yellow .ct{color:var(--neon-yellow);}
+.cb-red{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.2);}.cb-red::before{background:var(--neon-red);}.cb-red .ct{color:var(--neon-red);}
+.cb-pink{background:rgba(219,39,119,0.06);border-color:rgba(219,39,119,0.2);}.cb-pink::before{background:var(--neon-pink);}.cb-pink .ct{color:var(--neon-pink);}
+/* FORMULA BOX */
+.formula-box{background:linear-gradient(135deg,rgba(37,99,235,0.06),rgba(8,145,178,0.04));border:1.5px solid rgba(37,99,235,0.25);border-radius:16px;padding:1.4rem 1.8rem;margin:1.4rem 0;text-align:center;position:relative;overflow:hidden;}
+.formula-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(37,99,235,0.04),transparent 70%);pointer-events:none;}
+.formula-main{font-family:var(--font-mono);font-size:1.15rem;font-weight:700;color:var(--neon-blue);letter-spacing:0.5px;line-height:2;}
+.formula-sub{font-size:0.84rem;color:var(--muted);margin-top:0.5rem;line-height:1.65;}
+.formula-label{position:absolute;top:0.55rem;right:1rem;font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--neon-blue);opacity:0.6;}
+.formula-box.fb-green{background:linear-gradient(135deg,rgba(22,163,74,0.06),rgba(8,145,178,0.04));border-color:rgba(22,163,74,0.25);}
+.formula-box.fb-green .formula-main{color:var(--neon-green);}
+.formula-box.fb-green .formula-label{color:var(--neon-green);}
+.formula-box.fb-orange{background:linear-gradient(135deg,rgba(194,65,12,0.06),rgba(180,83,9,0.04));border-color:rgba(194,65,12,0.25);}
+.formula-box.fb-orange .formula-main{color:var(--neon-orange);}
+.formula-box.fb-orange .formula-label{color:var(--neon-orange);}
+.formula-box.fb-cyan{background:linear-gradient(135deg,rgba(8,145,178,0.06),rgba(22,163,74,0.04));border-color:rgba(8,145,178,0.25);}
+.formula-box.fb-cyan .formula-main{color:var(--neon-cyan);}
+.formula-box.fb-cyan .formula-label{color:var(--neon-cyan);}
+.formula-box.fb-purple{background:linear-gradient(135deg,rgba(124,58,237,0.06),rgba(219,39,119,0.04));border-color:rgba(124,58,237,0.25);}
+.formula-box.fb-purple .formula-main{color:var(--neon-purple);}
+.formula-box.fb-purple .formula-label{color:var(--neon-purple);}
+/* MATH TERMS */
+.math-terms{display:flex;flex-wrap:wrap;gap:0.6rem;margin:0.8rem 0;}
+.math-term{display:inline-flex;align-items:center;gap:0.45rem;background:#f0f4ff;border:1px solid var(--border2);border-radius:8px;padding:0.3rem 0.75rem;font-size:0.84rem;}
+.math-term .sym{font-family:var(--font-mono);font-weight:700;color:var(--neon-blue);}
+.math-term .meaning{color:var(--muted);}
+/* CM GRID */
+.cm-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;max-width:420px;margin:1rem auto;}
+.cm-cell{border-radius:12px;padding:1rem;text-align:center;border:2px solid;}
+.cm-label{font-family:var(--font-head);font-weight:800;font-size:0.78rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:0.4rem;}
+.cm-val{font-family:var(--font-head);font-weight:800;font-size:2rem;line-height:1;}
+.cm-desc{font-size:0.78rem;color:var(--muted);margin-top:0.3rem;}
+.cm-tp{background:rgba(22,163,74,0.08);border-color:rgba(22,163,74,0.4);}
+.cm-tp .cm-label{color:var(--neon-green);}
+.cm-tp .cm-val{color:var(--neon-green);}
+.cm-fp{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.35);}
+.cm-fp .cm-label{color:var(--neon-red);}
+.cm-fp .cm-val{color:var(--neon-red);}
+.cm-fn{background:rgba(194,65,12,0.06);border-color:rgba(194,65,12,0.35);}
+.cm-fn .cm-label{color:var(--neon-orange);}
+.cm-fn .cm-val{color:var(--neon-orange);}
+.cm-tn{background:rgba(8,145,178,0.06);border-color:rgba(8,145,178,0.35);}
+.cm-tn .cm-label{color:var(--neon-cyan);}
+.cm-tn .cm-val{color:var(--neon-cyan);}
+/* ACH CARD */
+.ach-card{background:#ffffff;border:1px solid var(--border);border-radius:18px;padding:1.4rem;height:100%;transition:0.3s;text-align:center;position:relative;overflow:hidden;}
+.ach-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;opacity:0;transition:opacity 0.3s;}
+.ach-card:hover{transform:translateY(-5px);border-color:var(--border2);}
+.ach-card:hover::after{opacity:1;}
+.ach-card.ac-blue::after{background:var(--neon-blue);}.ach-card.ac-blue:hover{box-shadow:0 16px 48px rgba(37,99,235,0.18);}
+.ach-card.ac-green::after{background:var(--neon-green);}.ach-card.ac-green:hover{box-shadow:0 16px 48px rgba(22,163,74,0.18);}
+.ach-card.ac-red::after{background:var(--neon-red);}.ach-card.ac-red:hover{box-shadow:0 10px 28px rgba(220,38,38,0.15);}
+.ach-card.ac-orange::after{background:var(--neon-orange);}.ach-card.ac-orange:hover{box-shadow:0 10px 28px rgba(194,65,12,0.15);}
+.ach-card.ac-purple::after{background:var(--neon-purple);}.ach-card.ac-purple:hover{box-shadow:0 10px 28px rgba(124,58,237,0.15);}
+.ach-card.ac-cyan::after{background:var(--neon-cyan);}.ach-card.ac-cyan:hover{box-shadow:0 16px 48px rgba(8,145,178,0.18);}
+.ach-icon{font-size:2rem;margin-bottom:0.65rem;display:block;}
+.ach-title{font-family:var(--font-head);font-weight:800;font-size:0.98rem;margin-bottom:0.4rem;}
+.ach-desc{font-size:0.87rem;color:var(--muted);line-height:1.65;}
+/* CODE BLOCK */
+.code-wrap{background:#f8f9fc;border:1px solid var(--border2);border-radius:14px;overflow:hidden;margin:1.2rem 0;}
+.code-header{display:flex;align-items:center;justify-content:space-between;background:rgba(37,99,235,0.06);padding:0.6rem 1.1rem;border-bottom:1px solid var(--border);}
+.code-lang{font-family:var(--font-mono);font-size:0.75rem;font-weight:600;color:var(--neon-blue);letter-spacing:1px;text-transform:uppercase;}
+.code-dots{display:flex;gap:5px;}
+.code-dot{width:10px;height:10px;border-radius:50%;}
+.code-dot:nth-child(1){background:#dc2626;}.code-dot:nth-child(2){background:#b45309;}.code-dot:nth-child(3){background:#16a34a;}
+.code-wrap pre{margin:0;padding:1.2rem 1.4rem;overflow-x:auto;background:transparent;}
+.code-wrap pre code{font-family:var(--font-mono);font-size:0.85rem;line-height:1.75;}
+pre[class*="language-"]{border-radius:0!important;font-family:var(--font-mono)!important;font-size:0.85rem!important;margin:0!important;border:none!important;background:transparent!important;}
+.code-output{background:rgba(22,163,74,0.06);border-top:1px solid rgba(22,163,74,0.2);padding:0.7rem 1.2rem;font-family:var(--font-mono);font-size:0.82rem;color:#14532d;line-height:1.7;}
+/* TABLE */
+.gtbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+.gtbl thead th{background:rgba(37,99,235,0.08);color:var(--neon-blue);font-family:var(--font-head);font-weight:700;padding:0.9rem 1rem;text-align:left;border-bottom:1px solid rgba(37,99,235,0.15);font-size:0.85rem;}
+.gtbl tbody td{padding:0.8rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);font-size:0.92rem;vertical-align:top;line-height:1.7;}
+.gtbl tbody tr:last-child td{border-bottom:none;}
+.gtbl tbody tr:hover td{background:rgba(37,99,235,0.03);color:var(--text);}
+.gtbl tbody td strong{color:var(--text);}
+/* STAT PILLS */
+.stat-pill{display:inline-flex;align-items:center;gap:0.4rem;border-radius:50px;padding:0.3rem 0.9rem;font-weight:700;font-size:0.8rem;border:1px solid;}
+.sp-blue{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.3);color:var(--neon-blue);}
+.sp-green{background:rgba(22,163,74,0.08);border-color:rgba(22,163,74,0.3);color:var(--neon-green);}
+.sp-red{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.3);color:var(--neon-red);}
+.sp-orange{background:rgba(194,65,12,0.08);border-color:rgba(194,65,12,0.3);color:var(--neon-orange);}
+.sp-cyan{background:rgba(8,145,178,0.08);border-color:rgba(8,145,178,0.3);color:var(--neon-cyan);}
+.sp-purple{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.3);color:var(--neon-purple);}
+.sp-yellow{background:rgba(180,83,9,0.08);border-color:rgba(180,83,9,0.3);color:var(--neon-yellow);}
+/* INLINE CODE */
+.inline-code{background:rgba(37,99,235,0.08);color:#1e40af;padding:0.1rem 0.45rem;border-radius:6px;font-family:var(--font-mono);font-size:0.88em;border:1px solid rgba(37,99,235,0.2);}
+/* HIGHLIGHT */
+.hl{background:rgba(180,83,9,0.1);color:#92400e;padding:0 5px;border-radius:4px;}
+.hl-green{background:rgba(22,163,74,0.1);color:var(--neon-green);padding:0 5px;border-radius:4px;}
+.hl-red{background:rgba(220,38,38,0.1);color:var(--neon-red);padding:0 5px;border-radius:4px;}
+.hl-blue{background:rgba(37,99,235,0.1);color:var(--neon-blue);padding:0 5px;border-radius:4px;}
+.hl-orange{background:rgba(194,65,12,0.1);color:var(--neon-orange);padding:0 5px;border-radius:4px;}
+.hl-cyan{background:rgba(8,145,178,0.1);color:var(--neon-cyan);padding:0 5px;border-radius:4px;}
+.hl-purple{background:rgba(124,58,237,0.1);color:var(--neon-purple);padding:0 5px;border-radius:4px;}
+/* GLOW DIVIDER */
+.glow-div{height:2px;border-radius:2px;margin:2rem 0;opacity:0.35;background:linear-gradient(90deg,transparent,var(--neon-blue),var(--neon-cyan),var(--neon-green),transparent);}
+/* MERMAID */
+.mermaid-wrap{background:#f8f9ff;border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin:1.5rem 0;text-align:center;overflow-x:auto;}
+/* QUIZ */
+.quiz-box{background:#fffbf0;border:1px solid rgba(180,83,9,0.18);border-radius:20px;padding:1.6rem;margin:1.8rem 0;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(180,83,9,0.07);}
+.quiz-box::before{content:'⚡ QUICK CHALLENGE';position:absolute;top:0;right:0;background:linear-gradient(135deg,#b45309,#c2410c);color:#fff;font-family:var(--font-head);font-weight:800;font-size:0.62rem;letter-spacing:2px;padding:0.32rem 0.9rem;border-radius:0 20px 0 12px;}
+.quiz-q{font-weight:700;color:#1c1917;margin-bottom:1.1rem;font-size:1.02rem;line-height:1.6;}
+.quiz-options{display:flex;flex-direction:column;gap:0.55rem;}
+.quiz-opt{background:#ffffff;border:1.5px solid #e5e7eb;border-radius:12px;padding:0.75rem 1.1rem;cursor:pointer;font-size:0.93rem;color:#374151;transition:0.15s;font-weight:500;display:flex;align-items:center;gap:0.85rem;user-select:none;}
+.quiz-opt:not(.answered-opt):hover{background:#f3f4f6;border-color:#9ca3af;transform:translateX(3px);}
+.quiz-opt.correct{background:#f0fdf4;border-color:#16a34a;color:#14532d;font-weight:700;}
+.quiz-opt.correct .opt-letter{background:#16a34a;color:#fff;}
+.quiz-opt.wrong{background:#fef2f2;border-color:#dc2626;color:#991b1b;opacity:0.8;}
+.quiz-opt.wrong .opt-letter{background:#dc2626;color:#fff;}
+.quiz-opt.dimmed{opacity:0.45;pointer-events:none;}
+.quiz-opt .opt-letter{width:28px;height:28px;border-radius:8px;background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:0.8rem;flex-shrink:0;transition:0.2s;}
+.quiz-explain{display:none;font-size:0.84rem;font-weight:500;margin-top:-0.35rem;margin-bottom:0.35rem;padding:0.5rem 0.85rem 0.5rem 1rem;border-radius:0 0 10px 10px;line-height:1.6;border-left:3px solid transparent;}
+.quiz-explain.show-correct{display:block;background:rgba(22,163,74,0.07);color:#166534;border-left-color:#16a34a;}
+.quiz-explain.show-wrong{display:block;background:rgba(220,38,38,0.06);color:#991b1b;border-left-color:#dc2626;}
+.quiz-explain.show-reveal{display:block;background:rgba(37,99,235,0.06);color:#1e40af;border-left-color:#2563eb;}
+.quiz-feedback{display:none;margin-top:1rem;padding:0.85rem 1.1rem;border-radius:12px;font-weight:700;font-size:0.95rem;align-items:center;gap:0.6rem;}
+.quiz-feedback.show{display:flex;animation:fadeIn 0.35s;}
+.quiz-feedback.win{background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#14532d;border:1px solid rgba(22,163,74,0.3);}
+.quiz-feedback.lose{background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;border:1px solid rgba(220,38,38,0.2);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+/* FOOTER */
+.gfooter{background:#e8edf8;border-top:1px solid var(--border);padding:3rem 0;margin-top:4rem;text-align:center;}
+.gfooter-logo{font-family:var(--font-head);font-weight:800;font-size:1.4rem;background:linear-gradient(135deg,var(--neon-blue),var(--neon-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+/* ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(30px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.fade-up.visible{opacity:1;transform:none;}
+@media(max-width:768px){.hero h1{font-size:2rem;}.hero-orbit{display:none;}.level-card{padding:1.5rem;}.xp-badges{display:none;}.cm-grid{max-width:100%;}}
+/* TOAST */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;}
+.gtoast{background:#fff;border:1px solid var(--border2);border-radius:14px;padding:0.85rem 1.2rem;display:flex;align-items:center;gap:0.75rem;font-weight:700;font-size:0.88rem;transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:auto;min-width:260px;box-shadow:0 8px 32px rgba(37,99,235,0.15);}
+.gtoast.show{transform:none;}
+.gtoast-icon{font-size:1.4rem;}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
+.modal-overlay.open{opacity:1;pointer-events:auto;}
+.modal-box{background:#fff;border-radius:28px;padding:2.5rem 2.5rem 2rem;max-width:520px;width:100%;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(37,99,235,0.18);transform:scale(0.85) translateY(20px);transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1),opacity 0.4s ease;opacity:0;}
+.modal-overlay.open .modal-box{transform:scale(1) translateY(0);opacity:1;}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--neon-blue),var(--neon-cyan),var(--neon-green));}
+.modal-close{position:absolute;top:1rem;right:1rem;background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:0.9rem;color:#6b7280;display:flex;align-items:center;justify-content:center;transition:0.2s;}
+.modal-close:hover{background:#e5e7eb;}
+.modal-trophy{font-size:3rem;text-align:center;margin-bottom:0.5rem;}
+.modal-title{font-family:var(--font-head);font-weight:800;font-size:1.6rem;text-align:center;color:var(--text);margin-bottom:0.4rem;}
+.modal-subtitle{color:var(--muted);text-align:center;font-size:0.92rem;margin-bottom:1.5rem;}
+.score-ring-wrap{display:flex;justify-content:center;margin-bottom:1.2rem;}
+.score-ring{position:relative;width:120px;height:120px;}
+.score-ring svg{width:120px;height:120px;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:#e5e7eb;stroke-width:10;}
+.ring-fill{fill:none;stroke:#2563eb;stroke-width:10;stroke-linecap:round;stroke-dasharray:327;stroke-dashoffset:327;transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-num{font-family:var(--font-head);font-weight:800;font-size:1.4rem;color:var(--text);line-height:1;}
+.ring-label{font-size:0.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+.grade-card{border-radius:14px;padding:0.85rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;border:1.5px solid;}
+.grade-s{background:#fef9c3;border-color:#b45309;}.grade-a{background:#f0fdf4;border-color:#16a34a;}.grade-b{background:#eff6ff;border-color:#2563eb;}.grade-c{background:#f5f3ff;border-color:#7c3aed;}.grade-d{background:#fef2f2;border-color:#dc2626;}
+.grade-letter{font-family:var(--font-head);font-weight:800;font-size:1.6rem;}
+.grade-msg{font-size:0.9rem;color:var(--muted);font-weight:600;}
+.modal-xp-row{display:flex;align-items:center;justify-content:space-between;background:#f8f9ff;border:1px solid rgba(37,99,235,0.15);border-radius:12px;padding:0.75rem 1.1rem;margin-bottom:1.4rem;}
+.modal-xp-row .mxp-label{font-size:0.85rem;color:#6b7280;font-weight:600;}
+.modal-xp-row .mxp-val{font-family:var(--font-head);font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#2563eb,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.modal-btns{display:flex;gap:0.75rem;}
+.modal-btn-retry{flex:1;padding:0.8rem 1rem;background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:0.92rem;color:#374151;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;}
+.modal-btn-retry:hover{background:#e5e7eb;}
+.modal-btn-continue{flex:2;padding:0.8rem 1rem;background:linear-gradient(135deg,#2563eb,#0891b2);border:none;border-radius:12px;cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:0.92rem;color:#fff;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;box-shadow:0 4px 16px rgba(37,99,235,0.3);}
+.modal-btn-continue:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(37,99,235,0.4);}
+#confettiCanvas{position:fixed;inset:0;z-index:10001;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- XP STRIP -->
+<div class="xp-strip">
+  <div class="container-main">
+    <div class="xp-inner">
+      <span class="xp-label">⚡ XP</span>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpFill"></div></div>
+      <span class="xp-score" id="xpScore">0 / 275 XP</span>
+      <div class="xp-badges">
+        <span class="xp-badge b1" id="badge1">🧩 Matrix Master</span>
+        <span class="xp-badge b2" id="badge2">🎯 Precision Pro</span>
+        <span class="xp-badge b3" id="badge3">🔍 Recall Champion</span>
+        <span class="xp-badge b4" id="badge4">⚖️ F1 Balancer</span>
+        <span class="xp-badge b5" id="badge5">🏆 Metrics Champion</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container-main">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="hero-eyebrow"><i class="fa-solid fa-gamepad me-1"></i> Gamified Learning Quest</div>
+        <h1>
+          <span class="line1">Accuracy Enough Nahi Hai!</span>
+          <span class="line2">Classification Metrics</span>
+        </h1>
+        <p class="hero-sub">
+          5 boss levels. Confusion Matrix se lekar Accuracy, Precision, Recall, F1-Score, aur ROC-AUC tak — har metric kab use karein, kyu zaroorat hai, aur Python code. Real India examples ke saath bilkul beginner-friendly!
+        </p>
+        <div class="hero-stats">
+          <div class="hero-stat-item"><div class="hero-stat-num">5</div><div class="hero-stat-label">Boss Levels</div></div>
+          <div class="hero-stat-item"><div class="hero-stat-num">275</div><div class="hero-stat-label">Total XP</div></div>
+          <div class="hero-stat-item"><div class="hero-stat-num">7</div><div class="hero-stat-label">Metrics</div></div>
+          <div class="hero-stat-item"><div class="hero-stat-num">😊</div><div class="hero-stat-label">Beginner OK</div></div>
+        </div>
+        <a href="#s1" class="hero-cta"><i class="fa-solid fa-play me-1"></i> Start Your Quest</a>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-orbit">
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="orbit-center">📊</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container-main">
+
+<!-- QUEST MAP -->
+<div class="quest-map fade-up">
+  <div class="quest-map-title"><i class="fa-solid fa-map me-2"></i> Quest Map</div>
+  <div class="quest-grid">
+    <a href="#s1" class="quest-item"><span class="quest-num" style="background:rgba(37,99,235,0.15);color:var(--neon-blue);">L1</span> Accuracy ki Problem — Kyun Insufficient Hai?</a>
+    <a href="#s2" class="quest-item"><span class="quest-num" style="background:rgba(37,99,235,0.15);color:var(--neon-blue);">L1</span> Confusion Matrix — TP, TN, FP, FN</a>
+    <a href="#s3" class="quest-item"><span class="quest-num" style="background:rgba(8,145,178,0.15);color:var(--neon-cyan);">L2</span> Precision aur Recall — Formulas + Intuition</a>
+    <a href="#s4" class="quest-item"><span class="quest-num" style="background:rgba(8,145,178,0.15);color:var(--neon-cyan);">L2</span> F1-Score — Precision aur Recall ka Balance</a>
+    <a href="#s5" class="quest-item"><span class="quest-num" style="background:rgba(22,163,74,0.15);color:var(--neon-green);">L3</span> ROC Curve aur AUC Score</a>
+    <a href="#s6" class="quest-item"><span class="quest-num" style="background:rgba(194,65,12,0.15);color:var(--neon-orange);">L4</span> Python Code — Sab Metrics Ek Saath</a>
+    <a href="#s7" class="quest-item"><span class="quest-num" style="background:rgba(124,58,237,0.15);color:var(--neon-purple);">L5</span> Kaunsa Metric Kab? — Decision Guide</a>
+    <a href="#s8" class="quest-item"><span class="quest-num" style="background:rgba(180,83,9,0.15);color:var(--neon-yellow);">🏆</span> Final Summary &amp; Roadmap</a>
+  </div>
+</div>
+
+
+<!-- ═══ S1 — ACCURACY KI PROBLEM (BOSS L1) ═══ -->
+<div class="level-card lvl-blue fade-up" id="s1">
+  <div class="corner-deco">LEVEL 1</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-blue"><i class="fa-solid fa-circle-exclamation"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 1 · Boss Topic</div>
+      <div class="lv-title">Accuracy Enough Nahi Hai! — Kyun?</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="callout cb-blue">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Accuracy kya hai?</div>
+    <strong>Accuracy</strong> = Kitne predictions sahi hue / Total predictions<br><br>
+    Formula: <strong>Accuracy = (Correct Predictions) / (Total Predictions)</strong><br><br>
+    Example: 100 patients mein se 90 sahi classify kiye → Accuracy = 90%<br>
+    <em style="color:var(--dim);">Simple aur easy! Lekin real world mein akeli accuracy bahut misleading ho sakti hai...</em>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <!-- The classic imbalanced dataset problem -->
+  <div class="callout cb-red">
+    <div class="ct"><i class="fa-solid fa-bug"></i> Accuracy ka Problem — Cancer Detection Example</div>
+    Maan lo ek hospital ne <strong>cancer detection model</strong> banaya.<br><br>
+    Dataset: <strong>950 healthy patients + 50 cancer patients</strong> = 1000 total<br><br>
+    <strong>Dumb Model:</strong> "Sab healthy hain!" — koi bhi cancer detect nahi kiya.<br>
+    → Correct: 950 / 1000 = <span class="hl-red">95% Accuracy!</span> 😱<br><br>
+    <strong>Lekin reality:</strong> Sab 50 cancer patients miss ho gaye → model completely useless!<br>
+    <strong>High accuracy ≠ Good model</strong> — especially imbalanced data mein!
+  </div>
+
+  <!-- SVG: showing imbalanced dataset problem visually -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(37,99,235,0.2);border-radius:16px;padding:1.5rem;margin:1.4rem 0;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 185" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <text x="280" y="16" font-size="13" fill="#1e1b4b" font-weight="800" text-anchor="middle">Imbalanced Dataset — Accuracy Misleading Hai!</text>
+      <!-- Dataset bar -->
+      <rect x="40" y="35" width="480" height="40" rx="8" fill="rgba(22,163,74,0.15)" stroke="rgba(22,163,74,0.4)" stroke-width="1.5"/>
+      <rect x="40" y="35" width="456" height="40" rx="8" fill="rgba(22,163,74,0.25)"/>
+      <rect x="496" y="35" width="24" height="40" rx="0" fill="rgba(220,38,38,0.6)" stroke="rgba(220,38,38,0.4)" stroke-width="1"/>
+      <text x="258" y="60" font-size="12" fill="#14532d" font-weight="800" text-anchor="middle">950 Healthy (95%)</text>
+      <text x="508" y="60" font-size="8" fill="#991b1b" font-weight="700" text-anchor="middle">50</text>
+      <!-- Dumb model prediction -->
+      <rect x="40" y="88" width="480" height="40" rx="8" fill="rgba(22,163,74,0.15)" stroke="rgba(22,163,74,0.4)" stroke-width="1.5"/>
+      <text x="280" y="113" font-size="12" fill="#14532d" font-weight="800" text-anchor="middle">Model Predicts: ALL HEALTHY ← Sab same!</text>
+      <!-- Result -->
+      <text x="280" y="148" font-size="12" fill="#dc2626" font-weight="800" text-anchor="middle">Result: 95% Accuracy BUT 50 cancer patients MISSED! 😱</text>
+      <text x="280" y="165" font-size="11" fill="#6b7280" text-anchor="middle">Accuracy = 950/1000 = 95% — looks great but model is completely useless!</text>
+      <!-- Labels -->
+      <text x="38" y="30" font-size="9" fill="#6b7280">Dataset:</text>
+      <text x="38" y="83" font-size="9" fill="#6b7280">Model:</text>
+    </svg>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-4">
+      <div class="ach-card ac-red">
+        <span class="ach-icon">❌</span>
+        <div class="ach-title">Accuracy ki Problem</div>
+        <div class="ach-desc">Imbalanced data mein dumb model bhi high accuracy show kar sakta hai. Cancer, fraud — minority class important hoti hai!</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ach-card ac-blue">
+        <span class="ach-icon">🎯</span>
+        <div class="ach-title">Solution — Better Metrics</div>
+        <div class="ach-desc">Precision, Recall, F1-Score, ROC-AUC — ye metrics class imbalance handle karte hain aur sach mein model ki quality batate hain.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ach-card ac-green">
+        <span class="ach-icon">💡</span>
+        <div class="ach-title">Golden Rule</div>
+        <div class="ach-desc">Sirf accuracy mat dekho! Hamesha Confusion Matrix aur F1/Recall bhi check karo — especially medical, fraud, spam problems mein.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ 1 -->
+  <div class="quiz-box" data-quiz="1" data-correct="c" data-xp="25">
+    <div class="quiz-q">🤔 Paytm fraud detection model mein 10,000 transactions hain — 9,900 normal, 100 fraud. Model sab "normal" predict karta hai. Accuracy kitni hogi? Aur kya ye accha model hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. Agar sab normal predict karein toh 9,900/10,000 = 99% accuracy — 50% nahi. Lekin model useless hai kyunki sab 100 frauds miss."><span class="opt-letter">A</span>50% accuracy — bura model hai</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Nahi. 99% accuracy hogi (9,900 correct out of 10,000). Lekin 100% fraud recall = 0% — sab fraud transactions miss! Ye ek terrible model hai despite high accuracy."><span class="opt-letter">B</span>99% accuracy — bahut accha model hai!</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Bilkul sahi! 9,900/10,000 = 99% accuracy hai — lekin ye completely useless model hai! Sab 100 fraud transactions miss ho gaye. Ye classic class imbalance problem hai. Accuracy 99% hone ke bawajood model ne ek bhi fraud detect nahi kiya. Isliye fraud detection mein Recall (specifically fraud ke liye) aur F1-Score dekhna zaroori hai — not just accuracy!"><span class="opt-letter">C</span>99% accuracy — lekin model bilkul useless hai! Sab frauds miss ho gaye</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Nahi. Accuracy 10% nahi hogi. 9,900 out of 10,000 = 99% accuracy. Lekin problem ye hai ki 100% fraud miss hue — recall = 0%."><span class="opt-letter">D</span>10% accuracy — model ne sirf kuch sahi kiya</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ═══ S2 — CONFUSION MATRIX (SKILL) ═══ -->
+<div class="level-card lvl-blue fade-up" id="s2">
+  <div class="corner-deco">LEVEL 1</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-cyan"><i class="fa-solid fa-table-cells"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 1 · Skill Unlock</div>
+      <div class="lv-title">Confusion Matrix — Sab Metrics ki Neenv!</div>
+    </div>
+  </div>
+
+  <div class="callout cb-cyan">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Confusion Matrix kya hai?</div>
+    Ek <strong>2×2 table</strong> jo batata hai model ne kya sahi predict kiya aur kahan galti ki.<br>
+    Positive = disease hai / fraud hai / spam hai (jo dhundhna hai!)<br>
+    Negative = healthy / normal / not spam
+  </div>
+
+  <!-- CM cells visual -->
+  <div class="cm-grid">
+    <div class="cm-cell cm-tp">
+      <div class="cm-label">True Positive (TP)</div>
+      <div class="cm-val">✅</div>
+      <div class="cm-desc"><strong>Actual: Positive</strong><br>Predicted: Positive<br><em>Sahi pakda!</em></div>
+    </div>
+    <div class="cm-cell cm-fp">
+      <div class="cm-label">False Positive (FP)</div>
+      <div class="cm-val">❌</div>
+      <div class="cm-desc"><strong>Actual: Negative</strong><br>Predicted: Positive<br><em>Galat alarm! Type I Error</em></div>
+    </div>
+    <div class="cm-cell cm-fn">
+      <div class="cm-label">False Negative (FN)</div>
+      <div class="cm-val">⚠️</div>
+      <div class="cm-desc"><strong>Actual: Positive</strong><br>Predicted: Negative<br><em>Miss kar gaya! Type II Error</em></div>
+    </div>
+    <div class="cm-cell cm-tn">
+      <div class="cm-label">True Negative (TN)</div>
+      <div class="cm-val">✅</div>
+      <div class="cm-desc"><strong>Actual: Negative</strong><br>Predicted: Negative<br><em>Sahi chhoda!</em></div>
+    </div>
+  </div>
+
+  <!-- Easy memory trick -->
+  <div class="callout cb-yellow mt-3">
+    <div class="ct"><i class="fa-solid fa-brain"></i> Memory Trick — Yaad Karne ka Tarika!</div>
+    <strong>True/False</strong> = kya prediction sahi hai?<br>
+    <strong>Positive/Negative</strong> = model ne kya predict kiya?<br><br>
+    → <span class="hl-green">TP</span> = Model bola "Hai" + Sach mein tha ✅<br>
+    → <span class="hl-red">FP</span> = Model bola "Hai" + Sach mein nahi tha ❌ (False Alarm!)<br>
+    → <span class="hl-orange">FN</span> = Model bola "Nahi" + Sach mein tha ⚠️ (Miss kiya!)<br>
+    → <span class="hl-cyan">TN</span> = Model bola "Nahi" + Sach mein nahi tha ✅
+  </div>
+
+  <!-- Worked example with India context -->
+  <div class="callout cb-orange">
+    <div class="ct"><i class="fa-solid fa-hospital"></i> Worked Example — AIIMS Cancer Detection Model</div>
+    100 patients test kiye. Results:<br><br>
+    <div class="row g-2 mt-1">
+      <div class="col-sm-6 col-md-3">
+        <div style="background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.3);border-radius:10px;padding:0.8rem;text-align:center;">
+          <strong style="color:var(--neon-green);font-size:1.5rem;">40</strong><br>
+          <span style="font-size:0.82rem;color:var(--muted);">TP: Cancer hai, correctly detected</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.3);border-radius:10px;padding:0.8rem;text-align:center;">
+          <strong style="color:var(--neon-red);font-size:1.5rem;">5</strong><br>
+          <span style="font-size:0.82rem;color:var(--muted);">FP: Healthy ko cancer bola (False alarm!)</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div style="background:rgba(194,65,12,0.06);border:1px solid rgba(194,65,12,0.3);border-radius:10px;padding:0.8rem;text-align:center;">
+          <strong style="color:var(--neon-orange);font-size:1.5rem;">10</strong><br>
+          <span style="font-size:0.82rem;color:var(--muted);">FN: Cancer tha, miss kar gaya! (Dangerous!)</span>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <div style="background:rgba(8,145,178,0.06);border:1px solid rgba(8,145,178,0.3);border-radius:10px;padding:0.8rem;text-align:center;">
+          <strong style="color:var(--neon-cyan);font-size:1.5rem;">45</strong><br>
+          <span style="font-size:0.82rem;color:var(--muted);">TN: Healthy hai, correctly identified</span>
+        </div>
+      </div>
+    </div>
+    <div class="mt-2" style="font-size:0.9rem;">
+      <strong>Accuracy</strong> = (40+45) / 100 = <strong>85%</strong><br>
+      Lekin 10 cancer patients miss ho gaye (FN=10) — ye bahut dangerous hai!<br>
+      <em style="color:var(--dim);">Is case mein Recall = TP/(TP+FN) = 40/50 = 80% — ye monitor karna zaroori hai!</em>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ S3 — PRECISION AND RECALL (BOSS L2) ═══ -->
+<div class="level-card lvl-cyan fade-up" id="s3">
+  <div class="corner-deco">LEVEL 2</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-cyan"><i class="fa-solid fa-arrows-left-right-to-line"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 2 · Boss Topic</div>
+      <div class="lv-title">Precision aur Recall — Dono Ko Samjho!</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <!-- Precision formula -->
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="formula-box fb-blue" style="margin:0;">
+        <div class="formula-label">PRECISION</div>
+        <div class="formula-main">Precision = TP / (TP + FP)</div>
+        <div class="formula-sub">Jo model ne "Positive" bola — unme se kitne actually positive the?<br><em>"Model ki accuracy jab wo 'YES' bolta hai"</em></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="formula-box fb-orange" style="margin:0;">
+        <div class="formula-label">RECALL (Sensitivity)</div>
+        <div class="formula-main">Recall = TP / (TP + FN)</div>
+        <div class="formula-sub">Actual positives mein se kitne model ne dhundh liye?<br><em>"Model ne kitne cases miss kiye?"</em></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <!-- Simple police analogy -->
+  <div class="callout cb-yellow">
+    <div class="ct"><i class="fa-solid fa-shield-halved"></i> Super Easy Analogy — Police aur Criminals!</div>
+    Sochna: Police ne 100 log pakde — "ye sab criminal hain!"<br><br>
+    <strong>Precision</strong> = Un 100 mein se kitne sach mein criminal the?<br>
+    → Agar 80 actual criminal aur 20 innocent → Precision = 80/100 = <span class="hl-blue">80%</span><br>
+    → "Jab police bolti hai 'criminal' — kitni baar sahi hoti hai?"<br><br>
+    <strong>Recall</strong> = Sheher mein total criminals mein se kitne pakde?<br>
+    → Agar sheher mein 200 criminals the, 80 pakde → Recall = 80/200 = <span class="hl-orange">40%</span><br>
+    → "Kitne criminals miss ho gaye?"
+  </div>
+
+  <!-- Worked example from AIIMS -->
+  <div class="callout cb-cyan">
+    <div class="ct"><i class="fa-solid fa-calculator"></i> AIIMS Example se Calculate Karo (TP=40, FP=5, FN=10, TN=45)</div>
+    <strong>Precision</strong> = TP / (TP + FP) = 40 / (40 + 5) = 40/45 = <span class="hl-blue">88.9%</span><br>
+    → Matlab: Jab model ne "Cancer!" bola — 88.9% baar sach tha. (False alarms: only 5/45)<br><br>
+    <strong>Recall</strong> = TP / (TP + FN) = 40 / (40 + 10) = 40/50 = <span class="hl-orange">80%</span><br>
+    → Matlab: Total 50 cancer patients mein se model ne 40 pakde, 10 miss kiye!<br><br>
+    <strong>Kaunsa zyada important?</strong> Yahan Recall! Kyunki missed cancer = dangerous!
+  </div>
+
+  <!-- Precision vs Recall tradeoff -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(8,145,178,0.2);border-radius:16px;padding:1.5rem;margin:1.4rem 0;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 165" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <text x="280" y="16" font-size="13" fill="#1e1b4b" font-weight="800" text-anchor="middle">Precision vs Recall — The Tradeoff!</text>
+      <!-- High Precision Low Recall -->
+      <rect x="10" y="28" width="255" height="128" rx="12" fill="rgba(37,99,235,0.04)" stroke="rgba(37,99,235,0.25)" stroke-width="1.5"/>
+      <text x="138" y="46" font-size="11" fill="#2563eb" font-weight="800" text-anchor="middle">High Precision, Low Recall</text>
+      <text x="138" y="60" font-size="10" fill="#6b7280" text-anchor="middle">"Sirf pakao jab 100% sure ho"</text>
+      <!-- Net with few catches -->
+      <ellipse cx="138" cy="105" rx="90" ry="30" fill="rgba(37,99,235,0.08)" stroke="#2563eb" stroke-width="2" stroke-dasharray="5,3"/>
+      <circle cx="120" cy="100" r="7" fill="#dc2626"/><circle cx="155" cy="108" r="7" fill="#dc2626"/>
+      <circle cx="60"  cy="90"  r="7" fill="#9ca3af" opacity="0.5"/>
+      <circle cx="200" cy="95"  r="7" fill="#9ca3af" opacity="0.5"/>
+      <circle cx="90"  cy="75"  r="7" fill="#9ca3af" opacity="0.5"/>
+      <circle cx="175" cy="75"  r="7" fill="#9ca3af" opacity="0.5"/>
+      <text x="138" y="148" font-size="9" fill="#2563eb" text-anchor="middle">Pakde: 2 criminals (both real!) but 4 escaped!</text>
+
+      <!-- High Recall Low Precision -->
+      <rect x="295" y="28" width="255" height="128" rx="12" fill="rgba(194,65,12,0.04)" stroke="rgba(194,65,12,0.25)" stroke-width="1.5"/>
+      <text x="423" y="46" font-size="11" fill="#c2410c" font-weight="800" text-anchor="middle">High Recall, Low Precision</text>
+      <text x="423" y="60" font-size="10" fill="#6b7280" text-anchor="middle">"Pakao sab — galat ho toh chalega"</text>
+      <!-- Big net catches everyone -->
+      <ellipse cx="423" cy="105" rx="110" ry="40" fill="rgba(194,65,12,0.08)" stroke="#c2410c" stroke-width="2" stroke-dasharray="5,3"/>
+      <circle cx="390" cy="95"  r="7" fill="#dc2626"/><circle cx="440" cy="110" r="7" fill="#dc2626"/>
+      <circle cx="350" cy="85"  r="7" fill="#dc2626"/><circle cx="460" cy="90"  r="7" fill="#dc2626"/>
+      <circle cx="370" cy="110" r="7" fill="#9ca3af"/><circle cx="500" cy="100" r="7" fill="#9ca3af"/>
+      <text x="423" y="148" font-size="9" fill="#c2410c" text-anchor="middle">Pakde: 4 criminals + 2 innocent (FP)!</text>
+      <!-- Legend -->
+      <circle cx="60"  cy="158" r="5" fill="#dc2626"/><text x="70"  y="162" font-size="9" fill="#6b7280">Criminal</text>
+      <circle cx="130" cy="158" r="5" fill="#9ca3af"/><text x="140" y="162" font-size="9" fill="#6b7280">Innocent</text>
+    </svg>
+  </div>
+
+  <!-- QUIZ 2 -->
+  <div class="quiz-box" data-quiz="2" data-correct="b" data-xp="25">
+    <div class="quiz-q">🤔 AIIMS hospital mein cancer detection: TP=40, FP=5, FN=10, TN=45. Doctor poochh raha hai — "Model ne kaunse cancer patients miss kiye?" — Konsa metric answer deta hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. Precision = TP/(TP+FP) = 40/45 = 88.9%. Ye batata hai 'jab model ne cancer bola, kitni baar sahi tha' — miss kiye hue patients nahi."><span class="opt-letter">A</span>Precision — 88.9%</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Bilkul sahi! Recall = TP/(TP+FN) = 40/(40+10) = 40/50 = 80%. FN = False Negatives = actual cancer patients jo model ne miss kiye (bola 'healthy' lekin cancer tha). Recall directly batata hai: 'Total actual positives mein se model ne kitne dhundhe?' Lower recall = more missed cases. Cancer detection mein Recall sabse important metric hai!"><span class="opt-letter">B</span>Recall — 80% (50 cancer patients mein se 40 pakde, 10 miss!)</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. Accuracy = (TP+TN)/(total) = (40+45)/100 = 85%. Ye missed patients specifically nahi batata — overall correctness batata hai."><span class="opt-letter">C</span>Accuracy — 85%</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Nahi. F1-Score Precision aur Recall ka harmonic mean hai. Ye missed patients directly nahi batata — Recall specifically FN (missed positives) consider karta hai."><span class="opt-letter">D</span>F1-Score</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ═══ S4 — F1-SCORE (SKILL L2) ═══ -->
+<div class="level-card lvl-cyan fade-up" id="s4">
+  <div class="corner-deco">LEVEL 2</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-green"><i class="fa-solid fa-scale-balanced"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 2 · Skill Unlock</div>
+      <div class="lv-title">F1-Score — Precision aur Recall ka Seedha Balance!</div>
+    </div>
+  </div>
+
+  <div class="callout cb-green">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> F1-Score kya hai?</div>
+    Precision aur Recall dono important hain — lekin dono ek saath maximize karna mushkil hai.<br><br>
+    <strong>F1-Score</strong> = Precision aur Recall ka <span class="hl-green">Harmonic Mean</span> — dono ka ek single balanced score!
+  </div>
+
+  <div class="formula-box fb-green">
+    <div class="formula-label">F1-SCORE FORMULA</div>
+    <div class="formula-main">F1 = 2 × (Precision × Recall) / (Precision + Recall)</div>
+    <div class="formula-sub">Harmonic mean — dono ka balanced single number. Range: 0 to 1 (higher = better)</div>
+  </div>
+
+  <!-- Why harmonic mean? -->
+  <div class="callout cb-blue">
+    <div class="ct"><i class="fa-solid fa-brain"></i> Kyun Harmonic Mean? Regular Average Kyun Nahi?</div>
+    Maan lo: Precision = 100%, Recall = 0%<br>
+    <strong>Regular Average</strong> = (100+0)/2 = <span class="hl-red">50%</span> — misleading! Model useless hai!<br>
+    <strong>Harmonic Mean (F1)</strong> = 2×(100×0)/(100+0) = <span class="hl-green">0%</span> — sahi! Useless model = 0 F1<br><br>
+    Harmonic mean ek metric ke bahut low hone pe punish karta hai — isliye better balance deta hai!
+  </div>
+
+  <!-- AIIMS calculation -->
+  <div class="callout cb-cyan">
+    <div class="ct"><i class="fa-solid fa-calculator"></i> AIIMS Example — F1 Calculate Karo</div>
+    Precision = 88.9% (0.889), Recall = 80% (0.80)<br><br>
+    <strong>F1 = 2 × (0.889 × 0.80) / (0.889 + 0.80)</strong><br>
+    = 2 × 0.711 / 1.689<br>
+    = 1.422 / 1.689<br>
+    = <strong>0.842 = 84.2%</strong><br><br>
+    F1 = 84.2% — Precision aur Recall ke beech mein, dono consider kiya!
+  </div>
+
+  <!-- F1 variants -->
+  <div class="callout cb-yellow">
+    <div class="ct"><i class="fa-solid fa-star"></i> F1 ke Variants — Jab Precision ya Recall zyada important ho</div>
+    <strong>F-beta Score</strong> = (1+β²) × (Precision × Recall) / (β²×Precision + Recall)<br><br>
+    → <strong>β = 1</strong>: Equal weight (standard F1)<br>
+    → <strong>β = 2 (F2)</strong>: Recall zyada important — medical detection, fraud<br>
+    → <strong>β = 0.5 (F0.5)</strong>: Precision zyada important — spam filter (FP annoying hai)<br><br>
+    <em style="color:var(--dim);">sklearn mein: <span class="inline-code">f1_score(y_true, y_pred, beta=2)</span></em>
+  </div>
+</div>
+
+
+<!-- ═══ S5 — ROC AUC (BOSS L3) ═══ -->
+<div class="level-card lvl-green fade-up" id="s5">
+  <div class="corner-deco">LEVEL 3</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-purple"><i class="fa-solid fa-chart-area"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 3 · Boss Topic</div>
+      <div class="lv-title">ROC Curve aur AUC Score — Model ki Overall Quality!</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="callout cb-purple">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> ROC-AUC kya hai? Simple Explanation!</div>
+    <strong>ROC</strong> = Receiver Operating Characteristic curve<br>
+    <strong>AUC</strong> = Area Under the Curve (0 to 1)<br><br>
+    ROC-AUC batata hai: <em>"Agar ek positive aur ek negative random uthao — model positive ko higher rank dega ya nahi?"</em><br><br>
+    → <span class="hl-green">AUC = 1.0</span>: Perfect model — always correct<br>
+    → <span class="hl-blue">AUC = 0.5</span>: Random guessing — coin flip ke barabar!<br>
+    → <span class="hl-red">AUC = 0.0</span>: Perfectly wrong! (Sab ulta predict karo → 1.0 ho jaayega)
+  </div>
+
+  <!-- ROC SVG -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(124,58,237,0.2);border-radius:16px;padding:1.5rem;margin:1.4rem 0;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 290" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <defs>
+        <marker id="axR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9ca3af"/></marker>
+        <marker id="ayR" markerWidth="6" markerHeight="8" refX="3" refY="0" orient="auto"><polygon points="0 8,3 0,6 8" fill="#9ca3af"/></marker>
+      </defs>
+      <text x="280" y="16" font-size="13" fill="#1e1b4b" font-weight="800" text-anchor="middle">ROC Curve — Model ki Quality at Different Thresholds</text>
+      <!-- Axes -->
+      <line x1="70" y1="250" x2="490" y2="250" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#axR)"/>
+      <line x1="70" y1="250" x2="70" y2="30" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ayR)"/>
+      <text x="496" y="254" font-size="10" fill="#6b7280">FPR →</text>
+      <text x="20" y="25" font-size="10" fill="#6b7280">TPR ↑</text>
+      <text x="55" y="254" font-size="9" fill="#6b7280">0</text>
+      <text x="55" y="35" font-size="9" fill="#6b7280">1</text>
+      <text x="480" y="264" font-size="9" fill="#6b7280">1</text>
+      <!-- Grid lines -->
+      <line x1="70" y1="40" x2="488" y2="40" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,3"/>
+      <line x1="279" y1="40" x2="279" y2="250" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="4,3"/>
+      <!-- Random baseline (AUC=0.5) -->
+      <line x1="70" y1="250" x2="488" y2="40" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="8,5"/>
+      <text x="380" y="180" font-size="10" fill="#9ca3af" font-style="italic">Random (AUC=0.5)</text>
+      <!-- Good model ROC curve (AUC≈0.92) -->
+      <path d="M 70,250 C 90,160 130,65 488,40" stroke="#7c3aed" stroke-width="3" fill="none"/>
+      <!-- AUC shading -->
+      <path d="M 70,250 C 90,160 130,65 488,40 L 488,250 Z" fill="rgba(124,58,237,0.08)"/>
+      <text x="200" y="200" font-size="13" fill="#7c3aed" font-weight="800">AUC = 0.92</text>
+      <text x="200" y="215" font-size="10" fill="#7c3aed">(Excellent Model!)</text>
+      <!-- Perfect model -->
+      <path d="M 70,250 L 70,40 L 488,40" stroke="#16a34a" stroke-width="2" stroke-dasharray="6,3" fill="none" opacity="0.7"/>
+      <text x="130" y="52" font-size="10" fill="#16a34a" font-weight="700">Perfect Model (AUC=1.0)</text>
+      <!-- X and Y axis labels -->
+      <text x="280" y="272" font-size="10" fill="#6b7280" text-anchor="middle">False Positive Rate (FPR) = FP/(FP+TN)</text>
+      <text x="22" y="145" font-size="10" fill="#6b7280" transform="rotate(-90,22,145)">True Positive Rate (TPR) = TP/(TP+FN)</text>
+    </svg>
+  </div>
+
+  <!-- Axes explanation -->
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="callout cb-green h-100" style="margin:0;">
+        <div class="ct"><i class="fa-solid fa-arrow-up"></i> Y-axis: TPR (True Positive Rate) = Recall</div>
+        <strong>TPR = TP / (TP + FN)</strong><br><br>
+        Recall hi hai! Actual positives mein se kitne pakde.<br>
+        Upar = Better! Model zyada positives pakad raha hai.
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="callout cb-red h-100" style="margin:0;">
+        <div class="ct"><i class="fa-solid fa-arrow-right"></i> X-axis: FPR (False Positive Rate)</div>
+        <strong>FPR = FP / (FP + TN)</strong><br><br>
+        Actual negatives mein se kitne galat positive bole.<br>
+        Left = Better! Kam false alarms.
+      </div>
+    </div>
+  </div>
+
+  <div class="callout cb-cyan mt-3">
+    <div class="ct"><i class="fa-solid fa-star"></i> AUC ka Matlab — Rule of Thumb</div>
+    <div class="table-responsive" style="margin-top:0.5rem;">
+      <table class="gtbl">
+        <thead><tr><th>AUC Value</th><th>Model Quality</th><th>Use karo?</th></tr></thead>
+        <tbody>
+          <tr><td>0.9 – 1.0</td><td><span class="stat-pill sp-green">Excellent!</span></td><td>✅ Haan, deploy karo!</td></tr>
+          <tr><td>0.8 – 0.9</td><td><span class="stat-pill sp-blue">Good</span></td><td>✅ Generally acceptable</td></tr>
+          <tr><td>0.7 – 0.8</td><td><span class="stat-pill sp-cyan">Fair</span></td><td>⚠️ Improve karna try karo</td></tr>
+          <tr><td>0.6 – 0.7</td><td><span class="stat-pill sp-orange">Poor</span></td><td>❌ Better model try karo</td></tr>
+          <tr><td>0.5 – 0.6</td><td><span class="stat-pill sp-red">Fail</span></td><td>❌ Random guessing ke barabar!</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- QUIZ 3 -->
+  <div class="quiz-box" data-quiz="3" data-correct="a" data-xp="25">
+    <div class="quiz-q">🤔 Razorpay ke fraud detection mein do models compare kar rahe hain: Model A (AUC=0.95), Model B (AUC=0.62). Kya decide karna chahiye?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Bilkul sahi! AUC=0.95 = Excellent model — Model A bahut better hai. AUC=0.62 = Poor model, almost random guessing. Model A deploy karo kyunki: (1) Higher AUC = better discrimination between fraud and non-fraud, (2) 0.95 excellent range mein hai, (3) 0.62 practically useless hai fraud detection ke liye jahan precision bhi important hai. Lekin deployment se pehle: Precision, Recall, F1 bhi check karo specific threshold pe — AUC overall model quality dikhata hai."><span class="opt-letter">A</span>Model A use karo — AUC 0.95 excellent hai, Model B (0.62) almost random guessing!</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Nahi. AUC = 0.62 poor model hai — almost random guessing se thoda hi better. Ye fraud detection ke liye acceptable nahi. Model A (0.95) clearly superior hai."><span class="opt-letter">B</span>Model B use karo — 0.62 AUC = reasonable performance</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. 0.62 vs 0.95 mein clear winner hai — Model A. Dono ko average nahi karna chahiye — better model directly choose karo. Ensemble tab useful hota hai jab models complementary hote hain."><span class="opt-letter">C</span>Dono models combine karo (ensemble)</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Nahi. AUC metric threshold-independent hota hai — ye model ki overall discriminative ability dikhata hai across all thresholds. AUC 0.95 clearly shows Model A is much better. Threshold tuning alag step hai post-deployment."><span class="opt-letter">D</span>AUC se model compare nahi hota — accuracy use karo</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ═══ S6 — PYTHON CODE (BOSS L4) ═══ -->
+<div class="level-card lvl-orange fade-up" id="s6">
+  <div class="corner-deco">LEVEL 4</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-orange"><i class="fa-solid fa-code"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 4 · Boss Topic</div>
+      <div class="lv-title">Python Code — Sab Metrics Ek Saath!</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="ex-card" style="border-color:rgba(194,65,12,0.3);">
+    <div class="ex-head" style="background:rgba(194,65,12,0.08);color:#7c2d12;"><i class="fa-brands fa-python"></i> Classification Metrics — Paytm Fraud Detection Example</div>
+    <div class="ex-body">
+      <div class="code-wrap">
+        <div class="code-header"><span class="code-lang">🐍 Python — All Classification Metrics</span><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div></div>
+        <pre><code class="language-python"># ─── Step 1: Libraries import karo ───
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import (
+    accuracy_score,          # Overall correctness
+    precision_score,         # Jab "Yes" bola, kitni baar sahi?
+    recall_score,            # Actual positives mein se kitne pakde?
+    f1_score,                # Precision + Recall ka balance
+    confusion_matrix,        # TP, FP, FN, TN
+    classification_report,   # Sab metrics ek saath
+    roc_auc_score,           # Overall model quality
+)
+
+# ─── Step 2: Paytm-style Fraud Dataset banao ───
+np.random.seed(42)
+n_normal = 900    # 90% normal transactions
+n_fraud  = 100    # 10% fraud transactions
+
+# Normal transactions features (amount, time, merchant_score)
+X_normal = np.column_stack([
+    np.random.normal(500, 200, n_normal),    # amount
+    np.random.uniform(0, 24, n_normal),      # hour of day
+    np.random.uniform(0.6, 1.0, n_normal),   # merchant_score
+])
+
+# Fraud transactions (different pattern)
+X_fraud = np.column_stack([
+    np.random.normal(2000, 800, n_fraud),    # higher amounts
+    np.random.uniform(0, 6, n_fraud),        # late night hours
+    np.random.uniform(0.1, 0.5, n_fraud),    # low merchant_score
+])
+
+X = np.vstack([X_normal, X_fraud])
+y = np.array([0]*n_normal + [1]*n_fraud)    # 0=normal, 1=fraud
+
+# ─── Step 3: Simple Split (80 train, 20 test) ───
+X_train, X_test = X[:800], X[800:]
+y_train, y_test = y[:800], y[800:]
+
+# ─── Step 4: Scale aur Train ───
+scaler = StandardScaler()
+X_tr = scaler.fit_transform(X_train)
+X_te = scaler.transform(X_test)
+
+model = LogisticRegression(random_state=42, class_weight='balanced')
+model.fit(X_tr, y_train)
+
+y_pred  = model.predict(X_te)
+y_proba = model.predict_proba(X_te)[:, 1]   # Probability scores (for AUC)
+
+# ─── Step 5: Sab Metrics Calculate Karo ───
+print("=" * 50)
+print("  PAYTM FRAUD DETECTION — MODEL METRICS")
+print("=" * 50)
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+tn, fp, fn, tp = cm.ravel()
+print(f"\n🔲 Confusion Matrix:")
+print(f"  TP (Fraud correctly caught) : {tp}")
+print(f"  FP (Normal flagged as fraud): {fp}  ← False alarm")
+print(f"  FN (Fraud missed!)          : {fn}  ← DANGEROUS!")
+print(f"  TN (Normal correctly passed): {tn}")
+
+# Individual Metrics
+print(f"\n📊 Individual Metrics:")
+print(f"  Accuracy  : {accuracy_score(y_test, y_pred):.4f}")
+print(f"  Precision : {precision_score(y_test, y_pred):.4f}  ← False alarm rate")
+print(f"  Recall    : {recall_score(y_test, y_pred):.4f}  ← Fraud catch rate ⚡")
+print(f"  F1-Score  : {f1_score(y_test, y_pred):.4f}  ← Overall balance")
+print(f"  ROC-AUC   : {roc_auc_score(y_test, y_proba):.4f}  ← Model quality")
+
+# Full Report
+print(f"\n📋 Full Classification Report:")
+print(classification_report(y_test, y_pred,
+                             target_names=['Normal', 'Fraud']))
+
+# ─── Step 6: Imbalanced ke liye Macro vs Weighted ───
+print(f"\n🔄 F1 Variants (important for imbalanced data!):")
+print(f"  F1 Binary   : {f1_score(y_test, y_pred, average='binary'):.4f}  ← Fraud class only")
+print(f"  F1 Macro    : {f1_score(y_test, y_pred, average='macro'):.4f}  ← Both classes equal wt")
+print(f"  F1 Weighted : {f1_score(y_test, y_pred, average='weighted'):.4f}  ← Weighted by class size")</code></pre>
+        <div class="code-output">PAYTM FRAUD DETECTION — MODEL METRICS. TP=18, FP=3, FN=2, TN=177. Accuracy=0.9750. Precision=0.8571 (fraud caught, few false alarms!). Recall=0.9000 (90% frauds caught — only 2 missed!). F1=0.8780. ROC-AUC=0.9812 (Excellent!). Classification Report: Normal 0.99/0.98/0.99. Fraud 0.86/0.90/0.88. F1 Binary=0.878, Macro=0.934, Weighted=0.975.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key functions table -->
+  <h5 style="font-family:var(--font-head);font-weight:800;color:var(--text);margin:1.5rem 0 0.8rem;">
+    <i class="fa-solid fa-table me-2" style="color:var(--neon-orange)"></i>Key sklearn Functions — Cheat Sheet
+  </h5>
+  <div class="table-responsive">
+    <table class="gtbl">
+      <thead><tr><th>Metric</th><th>sklearn Function</th><th>Key Parameter</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Confusion Matrix</strong></td><td><span class="inline-code">confusion_matrix(y_true, y_pred)</span></td><td>Returns [[TN,FP],[FN,TP]]</td></tr>
+        <tr><td><strong>Accuracy</strong></td><td><span class="inline-code">accuracy_score(y_true, y_pred)</span></td><td>—</td></tr>
+        <tr><td><strong>Precision</strong></td><td><span class="inline-code">precision_score(y_true, y_pred)</span></td><td><span class="inline-code">average='binary'/'macro'/'weighted'</span></td></tr>
+        <tr><td><strong>Recall</strong></td><td><span class="inline-code">recall_score(y_true, y_pred)</span></td><td><span class="inline-code">average='binary'/'macro'/'weighted'</span></td></tr>
+        <tr><td><strong>F1-Score</strong></td><td><span class="inline-code">f1_score(y_true, y_pred)</span></td><td><span class="inline-code">beta=1 (default)</span></td></tr>
+        <tr><td><strong>ROC-AUC</strong></td><td><span class="inline-code">roc_auc_score(y_true, y_proba)</span></td><td>y_proba = probabilities, not labels!</td></tr>
+        <tr><td><strong>Full Report</strong></td><td><span class="inline-code">classification_report(y_true, y_pred)</span></td><td>Sab metrics ek saath — use this first!</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- QUIZ 4 -->
+  <div class="quiz-box" data-quiz="4" data-correct="c" data-xp="25">
+    <div class="quiz-q">🤔 <span class="inline-code">roc_auc_score(y_test, y_pred)</span> vs <span class="inline-code">roc_auc_score(y_test, y_proba)</span> — kaunsa sahi hai? Kyun?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. y_pred (0/1 labels) se AUC calculate karna mathematically possible hai lekin ye sirf ek point pe ROC curve deta hai — full curve nahi. This gives a very rough and unreliable AUC estimate."><span class="opt-letter">A</span>y_pred (0/1 labels) — same result deta hai</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Nahi. Dono ek saath nahi use karte — ye error dega. AUC ke liye sirf probabilities chahiye, binary labels nahi."><span class="opt-letter">B</span>Dono ek saath use karo</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Bilkul sahi! ROC-AUC ke liye hamesha y_proba (probability scores, 0.0 to 1.0) use karo — binary labels (0/1) nahi. Probabilities se ROC curve ke sab threshold points calculate hote hain aur actual AUC milta hai. model.predict_proba(X_test)[:, 1] use karo — ye positive class ki probability deta hai. Agar model ke paas predict_proba nahi hai (jaise LinearSVC), toh decision_function use karo."><span class="opt-letter">C</span>y_proba (probability scores 0.0–1.0) sahi hai — full ROC curve ke liye probabilities chahiye!</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Nahi. y_pred (0/1) se AUC suboptimal/incorrect hoga. Probability scores zaroori hain — ROC curve different thresholds pe banta hai jo sirf continuous probabilities se possible hai."><span class="opt-letter">D</span>y_pred better hai — probabilities unreliable hoti hain</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ═══ S7 — KAUNSA METRIC KAB (BOSS L5) ═══ -->
+<div class="level-card lvl-purple fade-up" id="s7">
+  <div class="corner-deco">LEVEL 5</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-orange"><i class="fa-solid fa-map-signs"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 5 · Boss Topic</div>
+      <div class="lv-title">Kaunsa Metric Kab? — Decision Guide!</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="gtbl">
+      <thead><tr><th>Problem</th><th>Main Concern</th><th>Best Metric</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>🏥 Cancer/Disease Detection</td>
+          <td>Miss karna dangerous!</td>
+          <td><span class="stat-pill sp-orange">Recall ⚡</span></td>
+          <td>FN (missed cancer) life-threatening. High Recall = kam miss</td>
+        </tr>
+        <tr>
+          <td>📧 Email Spam Filter</td>
+          <td>Important email spam na maane</td>
+          <td><span class="stat-pill sp-blue">Precision</span></td>
+          <td>FP (important email spam mein) annoying. High Precision = fewer false alarms</td>
+        </tr>
+        <tr>
+          <td>💳 Fraud Detection (Paytm/Razorpay)</td>
+          <td>Fraud bhi pakdo, customer disturb na ho</td>
+          <td><span class="stat-pill sp-green">F1-Score</span></td>
+          <td>Both Precision (false blocks) aur Recall (missed fraud) matter</td>
+        </tr>
+        <tr>
+          <td>🎯 Balanced Dataset (Cat vs Dog)</td>
+          <td>Simple performance measure</td>
+          <td><span class="stat-pill sp-cyan">Accuracy</span></td>
+          <td>Balanced classes mein Accuracy reliable hai</td>
+        </tr>
+        <tr>
+          <td>📊 Model Comparison/Ranking</td>
+          <td>Ek metric se compare karna</td>
+          <td><span class="stat-pill sp-purple">ROC-AUC</span></td>
+          <td>Threshold-independent, overall model quality. Best for comparison</td>
+        </tr>
+        <tr>
+          <td>🏦 Loan Default Prediction</td>
+          <td>Balance karna</td>
+          <td><span class="stat-pill sp-green">F1-Score + AUC</span></td>
+          <td>Both minority class performance aur overall quality matter</td>
+        </tr>
+        <tr>
+          <td>📱 App Install Prediction</td>
+          <td>Marketing budget efficiently use</td>
+          <td><span class="stat-pill sp-blue">Precision</span></td>
+          <td>Sirf likely installers ko target karo — FP waste of budget</td>
+        </tr>
+        <tr>
+          <td>🦠 COVID Test</td>
+          <td>Miss nahi hona chahiye</td>
+          <td><span class="stat-pill sp-orange">Recall (High)</span></td>
+          <td>FN (missed positive case) spreads disease. Prefer high Recall even with FP</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <div class="callout cb-yellow">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Simple Rules — Yaad Karo!</div>
+    <strong>🔴 False Negative costly hai → Recall maximize karo</strong><br>
+    (Disease miss karna, fraud miss karna, bomb miss karna)<br><br>
+    <strong>🔵 False Positive costly hai → Precision maximize karo</strong><br>
+    (Innocent ko criminal bolna, important email spam mein, customer wrongly block)<br><br>
+    <strong>🟢 Dono important hain → F1-Score use karo</strong><br>
+    (Fraud detection with customer experience, most production systems)<br><br>
+    <strong>🟣 Model compare karna hai → ROC-AUC use karo</strong><br>
+    (Model selection, research papers mein comparison)
+  </div>
+
+  <!-- QUIZ 5 -->
+  <div class="quiz-box" data-quiz="5" data-correct="b" data-xp="25">
+    <div class="quiz-q">🤔 Naukri.com ka resume screening model hai — relevant resumes dhundho. False Positive (irrelevant resume ko call karna) = recruiter ka time waste. False Negative (relevant resume miss karna) = good candidate miss. Kaunsa metric best hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. Sirf Recall maximize karo toh model sab resumes relevant bolega — recruiter ka time bahut zyada waste hoga. Precision bhi zaroori hai."><span class="opt-letter">A</span>Sirf Recall — good candidates miss nahi hone chahiye</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Bilkul sahi! Yahan dono costs matter: (1) FP (irrelevant resume shortlisted) = recruiter ka time waste, (2) FN (relevant resume miss) = good candidate lost. Koi ek zyada dominant nahi — dono ko balance karna zaroori hai. F1-Score Precision aur Recall ka harmonic mean hai — ye exactly yahan useful hai. Agar Precision thoda zyada important ho (recruiter time bahut expensive) toh F0.5 use karo. Agar Recall zyada (har good candidate important) toh F2 use karo."><span class="opt-letter">B</span>F1-Score — dono FP (time waste) aur FN (candidate miss) balance karna hai</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. Accuracy yahan misleading ho sakta hai — agar 95% resumes irrelevant hain toh 'sab reject' karo → high accuracy but zero useful results. Imbalanced data mein accuracy avoid karo."><span class="opt-letter">C</span>Accuracy — overall performance dekhni hai</div>
+      <div class="quiz-opt" data-ans="d" data-explain="ROC-AUC model comparison ke liye good hai lekin specific deployment decision mein F1 zyada actionable hai. AUC threshold-independent hai — deployment ke liye specific threshold pe F1 dekhna better hai."><span class="opt-letter">D</span>ROC-AUC only — best overall quality deta hai</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ═══ S8 — FINAL SUMMARY ═══ -->
+<div class="level-card lvl-yellow fade-up" id="s8" style="background:linear-gradient(135deg,rgba(37,99,235,0.04),rgba(8,145,178,0.04),#ffffff);">
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-yellow"><i class="fa-solid fa-trophy"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">🏆 Quest Complete!</div>
+      <div class="lv-title">Final Summary — Sab Metrics Ek Nazar Mein!</div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="gtbl">
+      <thead><tr><th>Metric</th><th>Formula</th><th>Range</th><th>Yaad Karo</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="stat-pill sp-blue">Accuracy</span></td>
+          <td><span class="inline-code">(TP+TN) / Total</span></td>
+          <td>0–1</td>
+          <td>Balanced data mein use karo. Imbalanced mein misleading!</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-blue">Precision</span></td>
+          <td><span class="inline-code">TP / (TP+FP)</span></td>
+          <td>0–1</td>
+          <td>"Yes" bola toh kitni baar sahi? FP costly ho toh.</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-orange">Recall</span></td>
+          <td><span class="inline-code">TP / (TP+FN)</span></td>
+          <td>0–1</td>
+          <td>Kitne positives pakde? FN costly ho toh (cancer, fraud).</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-green">F1-Score</span></td>
+          <td><span class="inline-code">2×(P×R)/(P+R)</span></td>
+          <td>0–1</td>
+          <td>Dono balance chahiye. Imbalanced data ka best single metric.</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-purple">ROC-AUC</span></td>
+          <td>Area under ROC curve</td>
+          <td>0–1</td>
+          <td>Model comparison ke liye. 0.5=random, 1.0=perfect.</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-cyan">CM</span></td>
+          <td>[[TN,FP],[FN,TP]]</td>
+          <td>—</td>
+          <td>Sab metrics ki neenv! Hamesha pehle CM dekho.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <div class="mermaid-wrap">
+    <div class="mermaid">
+flowchart TD
+    A["📊 Classification Model Evaluate karo"] --> B[Confusion Matrix dekho: TP, FP, FN, TN]
+    B --> C{Dataset balanced hai?}
+    C -->|Yes — balanced classes| D["✅ Accuracy use karo\nSimple aur reliable!"]
+    C -->|No — imbalanced| E{Kya zyada costly hai?}
+    E -->|FN costly\nDisease/Fraud miss| F["⚡ Recall maximize karo\nAur F1 dekho"]
+    E -->|FP costly\nFalse alarms| G["🎯 Precision maximize karo\nSpam filter, etc."]
+    E -->|Dono equally costly| H["⚖️ F1-Score use karo\nBest balance"]
+    D --> I[ROC-AUC bhi check karo]
+    F --> I
+    G --> I
+    H --> I
+    I --> J{AUC > 0.8?}
+    J -->|Yes| K["✅ Good Model!\nDeploy karo"]
+    J -->|No| L["Model improve karo\nData ya algorithm change"]
+    style A fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    style B fill:#cffafe,stroke:#0891b2,color:#164e63
+    style C fill:#fef9c3,stroke:#b45309,color:#713f12
+    style D fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style E fill:#fef9c3,stroke:#b45309,color:#713f12
+    style F fill:#ffedd5,stroke:#c2410c,color:#7c2d12
+    style G fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    style H fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style I fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    style J fill:#fef9c3,stroke:#b45309,color:#713f12
+    style K fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style L fill:#ffedd5,stroke:#c2410c,color:#7c2d12
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-6">
+      <div class="callout cb-blue h-100" style="margin:0;">
+        <div class="ct"><i class="fa-brands fa-python"></i> Quick Code Reference</div>
+        <strong style="color:var(--neon-blue)">from sklearn.metrics import (</strong><br>
+        &nbsp;&nbsp;<strong style="color:var(--neon-cyan)">confusion_matrix,</strong><br>
+        &nbsp;&nbsp;<strong style="color:var(--neon-blue)">accuracy_score,</strong><br>
+        &nbsp;&nbsp;<strong style="color:var(--neon-orange)">precision_score, recall_score,</strong><br>
+        &nbsp;&nbsp;<strong style="color:var(--neon-green)">f1_score,</strong><br>
+        &nbsp;&nbsp;<strong style="color:var(--neon-purple)">roc_auc_score,</strong><br>
+        &nbsp;&nbsp;<strong style="color:var(--neon-blue)">classification_report</strong><br>
+        <strong style="color:var(--neon-blue)">)</strong><br><br>
+        <em style="color:var(--dim);">AUC ke liye y_proba use karo, y_pred nahi!</em>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="callout cb-green h-100" style="margin:0;">
+        <div class="ct"><i class="fa-solid fa-road"></i> Aage Kya Seekhein?</div>
+        📈 <strong>Logistic Regression</strong> — classification ka linear model<br>
+        🌲 <strong>Decision Trees</strong> — non-linear classification<br>
+        🔀 <strong>Cross-Validation</strong> — proper model evaluation<br>
+        ⚖️ <strong>Class Imbalance</strong> — SMOTE, class_weight<br>
+        🎛️ <strong>Threshold Tuning</strong> — precision-recall tradeoff control
+      </div>
+    </div>
+  </div>
+
+  <div class="callout cb-orange mt-3">
+    <div class="ct"><i class="fa-solid fa-heart"></i> Final Message — Yaad Rakhna!</div>
+    <strong>Accuracy akeli kaafi nahi hai!</strong> — Imbalanced data mein misleading hoti hai.<br>
+    → <strong>Confusion Matrix</strong>: Hamesha pehle dekho — TP, FP, FN, TN<br>
+    → <strong>Precision</strong>: FP minimize karo — false alarms costly ho toh<br>
+    → <strong>Recall</strong>: FN minimize karo — miss karna dangerous ho toh (cancer, fraud!)<br>
+    → <strong>F1-Score</strong>: Dono balance chahiye — most practical default<br>
+    → <strong>ROC-AUC</strong>: Models compare karne ke liye best single metric<br><br>
+    <strong style="color:var(--neon-orange)">Classification Metrics master ho gaya — ab tumhare models sach mein evaluate honge! 📊🚀</strong>
+  </div>
+</div>
+
+</div><!-- /container-main -->
+
+<!-- FOOTER -->
+<footer class="gfooter">
+  <div class="container-main">
+    <div class="gfooter-logo"><i class="fa-solid fa-chart-bar me-2"></i>Classification Metrics Quest</div>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.5rem;">Confusion Matrix · Accuracy · Precision · Recall · F1-Score · ROC-AUC | Gamified Tutorial</p>
+    <p style="color:var(--dim);font-size:0.82rem;">Made with <i class="fa-solid fa-heart" style="color:var(--neon-pink)"></i> for Hindi-speaking Data Science learners across India 🇮🇳</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL — HTML BEFORE SCRIPTS -->
+<canvas id="confettiCanvas"></canvas>
+<div class="modal-overlay" id="finalModal">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" id="modalClose" title="Close">✕</button>
+    <div class="modal-trophy" id="modalTrophy">🏆</div>
+    <div class="modal-title" id="modalTitle">Quest Complete!</div>
+    <div class="modal-subtitle" id="modalSubtitle">Tumne saare 5 quizzes complete kar liye!</div>
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="ring-text">
+          <div class="ring-num" id="ringNum">0/5</div>
+          <div class="ring-label">Score</div>
+        </div>
+      </div>
+    </div>
+    <div class="grade-card" id="gradeCard">
+      <div class="grade-letter" id="gradeLetter">S</div>
+      <div class="grade-msg" id="gradeMsg">Exceptional!</div>
+    </div>
+    <div class="modal-xp-row">
+      <span class="mxp-label">⚡ Total XP Earned from Quizzes</span>
+      <span class="mxp-val" id="modalXpVal">0 XP</span>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-retry"    id="modalRetry"><i class="fa-solid fa-rotate-right"></i> Retry All</button>
+      <button class="modal-btn-continue" id="modalContinue"><i class="fa-solid fa-trophy"></i> Awesome, Continue!</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function showFinalModal(){
+  const total=quizTotal,correct=quizCorrect,pct=total>0?correct/total:0,quizXP=correct*25;
+  const grades=[
+    {min:1.0,cls:'grade-s',letter:'S 🌟',msg:'Zabardast! Sab 5/5 correct! Metrics Champion! 📊'},
+    {min:0.8,cls:'grade-a',letter:'A 🎯',msg:'Bahut badhiya! Almost perfect metrics mastery!'},
+    {min:0.6,cls:'grade-b',letter:'B 📘',msg:'Accha kiya! Kuch concepts dobara review karo.'},
+    {min:0.4,cls:'grade-c',letter:'C 💪',msg:'Theek hai! Confusion matrix dobara padho.'},
+    {min:0.0,cls:'grade-d',letter:'D 📚',msg:'Aur mehnat karo! Tutorial dobara padho.'},
+  ];
+  const g=grades.find(gr=>pct>=gr.min);
+  document.getElementById('ringNum').textContent=correct+'/'+total;
+  document.getElementById('modalXpVal').textContent=quizXP+' XP';
+  const gc=document.getElementById('gradeCard');gc.className='grade-card '+g.cls;
+  document.getElementById('gradeLetter').textContent=g.letter;
+  document.getElementById('gradeMsg').textContent=g.msg;
+  if(pct===1.0){document.getElementById('modalTrophy').textContent='🏆';document.getElementById('modalTitle').textContent='🎊 Perfect Score!';document.getElementById('modalSubtitle').textContent='Wah! Saare '+total+'/'+total+' sahi! Metrics Champion!';}
+  else if(pct>=0.6){document.getElementById('modalTrophy').textContent='🎯';document.getElementById('modalTitle').textContent='Quest Complete!';document.getElementById('modalSubtitle').textContent=correct+' out of '+total+' correct. Kafi accha kiya!';}
+  else{document.getElementById('modalTrophy').textContent='📚';document.getElementById('modalTitle').textContent='Keep Trying!';document.getElementById('modalSubtitle').textContent='Tutorial dobara padho aur retry karo!';}
+  const circumference=327,offset=circumference*(1-pct);
+  const ringColors={'grade-s':'#b45309','grade-a':'#16a34a','grade-b':'#2563eb','grade-c':'#7c3aed','grade-d':'#dc2626'};
+  const ringEl=document.getElementById('ringFill');
+  ringEl.style.stroke=ringColors[g.cls]||'#2563eb';
+  ringEl.style.transition='none';ringEl.style.strokeDashoffset='327';
+  setTimeout(()=>{ringEl.style.transition='stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)';ringEl.style.strokeDashoffset=offset;},80);
+  document.getElementById('finalModal').classList.add('open');
+  if(pct>=0.6)launchConfetti(pct);
+}
+function launchConfetti(pct){
+  const canvas=document.getElementById('confettiCanvas'),ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const count=Math.floor(80+pct*140);
+  const colors=['#2563eb','#0891b2','#16a34a','#7c3aed','#b45309','#c2410c','#f59e0b'];
+  const pieces=Array.from({length:count},()=>({x:Math.random()*canvas.width,y:Math.random()*-canvas.height*0.6,w:Math.random()*10+5,h:Math.random()*6+3,color:colors[Math.floor(Math.random()*colors.length)],vx:(Math.random()-0.5)*4,vy:Math.random()*4+2,rot:Math.random()*360,vrot:(Math.random()-0.5)*9,alpha:1}));
+  let frame=0;
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);let alive=false;
+    pieces.forEach(p=>{if(p.y>canvas.height+20)return;alive=true;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vrot;if(p.y>canvas.height*0.65)p.alpha-=0.02;p.alpha=Math.max(0,p.alpha);ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+    frame++;if(alive&&frame<260)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);
+  })();
+}
+function initQuizzes(){
+  document.querySelectorAll('.quiz-box').forEach(box=>{
+    box.querySelectorAll('.quiz-opt').forEach(opt=>{const n=opt.cloneNode(true);opt.parentNode.replaceChild(n,opt);});
+    const correct=box.dataset.correct,qxp=parseInt(box.dataset.xp)||25;let answered=false;
+    box.querySelectorAll('.quiz-opt').forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        if(answered)return;answered=true;
+        const isCorrect=opt.dataset.ans===correct,fb=box.querySelector('.quiz-feedback');
+        box.querySelectorAll('.quiz-opt').forEach(o=>{o.classList.add('answered-opt');const exDiv=box.querySelector('.quiz-explain[data-for-ans="'+o.dataset.ans+'"]');if(o.dataset.ans===correct){o.classList.add('correct');if(exDiv)exDiv.classList.add('show-correct');}else if(o===opt&&!isCorrect){o.classList.add('wrong');if(exDiv)exDiv.classList.add('show-wrong');}else{o.classList.add('dimmed');}});
+        if(isCorrect){quizCorrect++;fb.className='quiz-feedback show win';fb.innerHTML='<span style="font-size:1.3rem">🎉</span>&nbsp;Zabardast! Sahi jawab! <strong>+'+qxp+' XP</strong> earned!';addXP(qxp);showToast('⚡','+'+qxp+' XP!','Bilkul sahi jawab!','#16a34a');}
+        else{fb.className='quiz-feedback show lose';fb.innerHTML='<span style="font-size:1.3rem">💡</span>&nbsp;Galat! Sahi jawab highlight ho gaya!';showToast('💡','Galat!','Sahi jawab dekho aur concept review karo.','#dc2626');}
+        const doneCount=Array.from(document.querySelectorAll('.quiz-box')).filter(b=>b.querySelector('.quiz-opt.answered-opt')).length;
+        if(doneCount===quizTotal)setTimeout(showFinalModal,1200);
+      });
+    });
+  });
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#dbeafe',primaryTextColor:'#1e3a8a',primaryBorderColor:'#2563eb',lineColor:'#94a3b8',secondaryColor:'#cffafe',tertiaryColor:'#dcfce7',fontFamily:'Plus Jakarta Sans, sans-serif',fontSize:'13px'},flowchart:{curve:'basis',padding:22}});
+
+let xp=0,scrollXpEarned=0;
+const XP_MAX=275;  // 5×30 scroll + 5×25 quiz = 275
+const earnedBadges=new Set();
+
+function addXP(amount,badgeId){
+  if(badgeId)scrollXpEarned=Math.min(scrollXpEarned+amount,150);
+  xp=Math.min(xp+amount,XP_MAX);
+  document.getElementById('xpFill').style.width=(xp/XP_MAX*100)+'%';
+  document.getElementById('xpScore').textContent=xp+' / '+XP_MAX+' XP';
+  if(badgeId&&!earnedBadges.has(badgeId)){earnedBadges.add(badgeId);const el=document.getElementById(badgeId);if(el)el.classList.add('earned');}
+  if(xp>=XP_MAX)showToast('🏆','QUEST COMPLETE! 🎊','Metrics Champion! 275/275 XP!','#b45309');
+}
+function showToast(icon,title,msg,color){
+  const container=document.getElementById('toastContainer');
+  const t=document.createElement('div');t.className='gtoast';
+  t.innerHTML=`<span class="gtoast-icon">${icon}</span><div><div style="font-weight:800;color:${color};font-size:0.9rem;">${title}</div><div style="color:#6b7280;font-size:0.8rem;font-weight:400;">${msg}</div></div>`;
+  container.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
+}
+
+let quizTotal=0,quizCorrect=0;
+document.querySelectorAll('.quiz-box').forEach(box=>{
+  quizTotal++;
+  const correct=box.dataset.correct,qxp=parseInt(box.dataset.xp)||25;let answered=false;
+  box.querySelectorAll('.quiz-opt').forEach(opt=>{
+    const explain=opt.dataset.explain||'';
+    if(explain){const div=document.createElement('div');div.className='quiz-explain';div.dataset.forAns=opt.dataset.ans;div.textContent=explain;opt.parentNode.insertBefore(div,opt.nextSibling);}
+  });
+  box.querySelectorAll('.quiz-opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      if(answered)return;answered=true;
+      const ans=opt.dataset.ans,fb=box.querySelector('.quiz-feedback'),isCorrect=ans===correct;
+      box.querySelectorAll('.quiz-opt').forEach(o=>{
+        o.classList.add('answered-opt');
+        const explainDiv=box.querySelector('.quiz-explain[data-for-ans="'+o.dataset.ans+'"]');
+        if(o.dataset.ans===correct){o.classList.add('correct');if(explainDiv)explainDiv.classList.add('show-correct');}
+        else if(o===opt&&!isCorrect){o.classList.add('wrong');if(explainDiv)explainDiv.classList.add('show-wrong');}
+        else{o.classList.add('dimmed');if(o.dataset.ans===correct&&explainDiv)explainDiv.classList.add('show-reveal');}
+      });
+      if(isCorrect){quizCorrect++;fb.className='quiz-feedback show win';fb.innerHTML='<span style="font-size:1.3rem">🎉</span> Zabardast! Sahi jawab! <strong>+'+qxp+' XP</strong> earned!';addXP(qxp);showToast('⚡','+'+qxp+' XP!','Bilkul sahi jawab!','#16a34a');}
+      else{fb.className='quiz-feedback show lose';fb.innerHTML='<span style="font-size:1.3rem">💡</span> Galat! Sahi jawab highlight ho gaya — concept dobara padho!';showToast('💡','Galat!','Sahi jawab dekho aur concept review karo.','#dc2626');}
+      const doneCount=Array.from(document.querySelectorAll('.quiz-box')).filter(b=>b.querySelector('.quiz-opt.answered-opt')).length;
+      if(doneCount===quizTotal)setTimeout(showFinalModal,1200);
+    });
+  });
+});
+
+const fadeObserver=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');fadeObserver.unobserve(e.target);}});},{threshold:0.12});
+document.querySelectorAll('.fade-up').forEach(el=>fadeObserver.observe(el));
+
+const sectionXP={
+  's1':{xp:30,badge:'badge1',msg:'🧩 Matrix Master badge unlocked!'},
+  's3':{xp:30,badge:'badge2',msg:'🎯 Precision Pro badge unlocked!'},
+  's5':{xp:30,badge:'badge3',msg:'🔍 Recall Champion badge unlocked!'},
+  's6':{xp:30,badge:'badge4',msg:'⚖️ F1 Balancer badge unlocked!'},
+  's7':{xp:30,badge:'badge5',msg:'🏆 Metrics Champion badge unlocked!'},
+};
+const xpObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      if(sectionXP[id]&&!earnedBadges.has(sectionXP[id].badge)){const{xp:sx,badge,msg}=sectionXP[id];addXP(sx,badge);showToast('🏅','Badge Unlocked!',msg,'#7c3aed');}
+      xpObserver.unobserve(e.target);
+    }
+  });
+},{threshold:0.12});
+['s1','s3','s5','s6','s7'].forEach(id=>{const el=document.getElementById(id);if(el)xpObserver.observe(el);});
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+
+function closeModal(){document.getElementById('finalModal').classList.remove('open');}
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('modalContinue').addEventListener('click',closeModal);
+document.getElementById('modalRetry').addEventListener('click',()=>{
+  closeModal();quizCorrect=0;xp=scrollXpEarned;
+  document.getElementById('xpFill').style.width=(xp/XP_MAX*100)+'%';
+  document.getElementById('xpScore').textContent=xp+' / '+XP_MAX+' XP';
+  document.querySelectorAll('.quiz-box').forEach(box=>{
+    box.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong','dimmed','answered-opt'));
+    box.querySelectorAll('.quiz-explain').forEach(ex=>ex.classList.remove('show-correct','show-wrong','show-reveal'));
+    const fb=box.querySelector('.quiz-feedback');if(fb){fb.className='quiz-feedback';fb.innerHTML='';}
+  });
+  initQuizzes();window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('finalModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>

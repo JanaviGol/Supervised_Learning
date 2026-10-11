@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python ML Quest — Bias-Variance &amp; Overfitting/Underfitting!</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4ff;--bg2:#e8edf8;--bg3:#dde4f5;--card:#ffffff;--card2:#f5f7ff;
+  --border:rgba(99,102,241,0.12);--border2:rgba(99,102,241,0.25);
+  --neon-blue:#2563eb;--neon-cyan:#0891b2;--neon-purple:#7c3aed;
+  --neon-pink:#db2777;--neon-green:#16a34a;--neon-yellow:#b45309;
+  --neon-orange:#c2410c;--neon-red:#dc2626;
+  --text:#1e1b4b;--muted:#4b5563;--dim:#9ca3af;
+  --font-head:'Syne',sans-serif;--font-body:'Plus Jakarta Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --glow-purple:0 4px 16px rgba(124,58,237,0.18),0 1px 4px rgba(124,58,237,0.10);
+  --glow-pink:0 4px 16px rgba(219,39,119,0.18),0 1px 4px rgba(219,39,119,0.10);
+  --glow-cyan:0 4px 16px rgba(8,145,178,0.18),0 1px 4px rgba(8,145,178,0.10);
+  --glow-green:0 4px 16px rgba(22,163,74,0.18),0 1px 4px rgba(22,163,74,0.10);
+  --glow-yellow:0 4px 16px rgba(180,83,9,0.18),0 1px 4px rgba(180,83,9,0.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.8;font-size:16px;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--neon-purple);border-radius:3px;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(37,99,235,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,0.06) 1px,transparent 1px);background-size:50px 50px;}
+.container-main{max-width:1280px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1;}
+
+/* XP BAR */
+.xp-strip{position:sticky;top:0;z-index:1000;background:rgba(240,244,255,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);box-shadow:0 2px 12px rgba(37,99,235,0.08);padding:0.65rem 0;}
+.xp-inner{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.xp-label{font-family:var(--font-head);font-weight:800;font-size:0.8rem;color:var(--neon-yellow);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+.xp-bar-wrap{flex:1;min-width:120px;background:rgba(37,99,235,0.1);border-radius:50px;height:10px;border:1px solid var(--border2);overflow:hidden;}
+.xp-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--neon-purple),var(--neon-pink),var(--neon-cyan));border-radius:50px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 10px rgba(124,58,237,0.35);position:relative;}
+.xp-bar-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:30px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4));animation:shimmer 2s infinite;}
+@keyframes shimmer{0%,100%{opacity:0;}50%{opacity:1;}}
+.xp-score{font-family:var(--font-head);font-weight:800;font-size:0.9rem;color:var(--neon-yellow);white-space:nowrap;}
+.xp-badges{display:flex;gap:0.4rem;flex-wrap:wrap;}
+.xp-badge{font-size:0.72rem;font-weight:700;padding:0.2rem 0.65rem;border-radius:50px;border:1px solid;white-space:nowrap;transition:0.3s;opacity:0.35;}
+.xp-badge.earned{opacity:1;animation:badgePop 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes badgePop{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
+.xp-badge.b1{border-color:var(--neon-purple);color:var(--neon-purple);}
+.xp-badge.b2{border-color:var(--neon-pink);color:var(--neon-pink);}
+.xp-badge.b3{border-color:var(--neon-cyan);color:var(--neon-cyan);}
+.xp-badge.b4{border-color:var(--neon-green);color:var(--neon-green);}
+.xp-badge.b5{border-color:var(--neon-yellow);color:var(--neon-yellow);}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:6rem 0 5rem;
+  background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,0.12) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(219,39,119,0.10) 0%,transparent 55%),
+             radial-gradient(ellipse at 60% 80%,rgba(8,145,178,0.07) 0%,transparent 50%),var(--bg);}
+.hero-orbit{position:absolute;top:50%;right:8%;transform:translateY(-50%);width:420px;height:420px;pointer-events:none;}
+.orbit-ring{position:absolute;border-radius:50%;border:1px solid rgba(124,58,237,0.25);top:50%;left:50%;transform:translate(-50%,-50%);}
+.orbit-ring:nth-child(1){width:150px;height:150px;animation:spin 12s linear infinite;}
+.orbit-ring:nth-child(2){width:250px;height:250px;animation:spin 20s linear infinite reverse;border-color:rgba(219,39,119,0.2);}
+.orbit-ring:nth-child(3){width:350px;height:350px;animation:spin 30s linear infinite;border-color:rgba(8,145,178,0.15);}
+.orbit-dot{position:absolute;width:8px;height:8px;border-radius:50%;top:-4px;left:50%;transform:translateX(-50%);}
+.orbit-ring:nth-child(1) .orbit-dot{background:var(--neon-purple);box-shadow:var(--glow-purple);}
+.orbit-ring:nth-child(2) .orbit-dot{background:var(--neon-pink);box-shadow:var(--glow-pink);}
+.orbit-ring:nth-child(3) .orbit-dot{background:var(--neon-cyan);box-shadow:var(--glow-cyan);}
+.orbit-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;animation:float 4s ease-in-out infinite;}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes float{0%,100%{transform:translate(-50%,-50%) translateY(0);}50%{transform:translate(-50%,-50%) translateY(-12px);}}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);border-radius:50px;padding:0.3rem 1rem;font-size:0.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--neon-purple);margin-bottom:1.5rem;}
+.hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--neon-purple);box-shadow:var(--glow-purple);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+.hero h1{font-family:var(--font-head);font-weight:800;font-size:clamp(2.4rem,5vw,4rem);line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.5rem;}
+.hero h1 .line1{display:block;color:#1e1b4b;}
+.hero h1 .line2{display:block;background:linear-gradient(135deg,var(--neon-purple) 0%,var(--neon-pink) 50%,var(--neon-cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:560px;margin-bottom:2rem;line-height:1.75;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:2.5rem;}
+.hero-stat-item{text-align:center;}
+.hero-stat-num{font-family:var(--font-head);font-weight:800;font-size:1.8rem;line-height:1;background:linear-gradient(135deg,var(--neon-purple),var(--neon-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-stat-label{font-size:0.75rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:0.2rem;}
+.hero-cta{display:inline-flex;align-items:center;gap:0.6rem;background:linear-gradient(135deg,var(--neon-purple),var(--neon-pink));color:white;font-weight:700;font-size:0.95rem;padding:0.8rem 2rem;border-radius:50px;border:none;cursor:pointer;text-decoration:none;box-shadow:0 4px 20px rgba(124,58,237,0.3);transition:0.3s;animation:pulse-btn 2s infinite;}
+@keyframes pulse-btn{0%,100%{box-shadow:0 4px 20px rgba(124,58,237,0.28);}50%{box-shadow:0 4px 32px rgba(124,58,237,0.45);}}
+.hero-cta:hover{transform:translateY(-2px) scale(1.03);color:white;}
+
+/* QUEST MAP */
+.quest-map{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:2rem;margin:3rem 0;position:relative;box-shadow:0 4px 24px rgba(37,99,235,0.07);}
+.quest-map::before{content:'';position:absolute;inset:0;border-radius:20px;background:linear-gradient(135deg,rgba(124,58,237,0.03),rgba(219,39,119,0.03));pointer-events:none;}
+.quest-map-title{font-family:var(--font-head);font-weight:800;font-size:1.1rem;color:var(--neon-yellow);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.75rem;}
+.quest-map-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(234,179,8,0.3),transparent);}
+.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:0.75rem;}
+.quest-item{display:flex;align-items:center;gap:0.75rem;background:#f8f9ff;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;text-decoration:none;color:var(--muted);font-weight:600;font-size:0.88rem;transition:0.25s;}
+.quest-item:hover{background:rgba(124,58,237,0.07);border-color:rgba(124,58,237,0.3);color:var(--neon-purple);transform:translateX(4px);}
+.quest-num{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:0.78rem;flex-shrink:0;}
+
+/* LEVEL CARD */
+.level-card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:2.5rem;margin-bottom:2.5rem;position:relative;overflow:hidden;transition:border-color 0.3s,box-shadow 0.3s;}
+.level-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:24px 24px 0 0;}
+.level-card.lvl-purple::before{background:linear-gradient(90deg,var(--neon-purple),var(--neon-pink));}
+.level-card.lvl-pink::before{background:linear-gradient(90deg,var(--neon-pink),var(--neon-purple));}
+.level-card.lvl-cyan::before{background:linear-gradient(90deg,var(--neon-cyan),var(--neon-green));}
+.level-card.lvl-green::before{background:linear-gradient(90deg,var(--neon-green),var(--neon-cyan));}
+.level-card.lvl-blue::before{background:linear-gradient(90deg,var(--neon-blue),var(--neon-cyan));}
+.level-card.lvl-orange::before{background:linear-gradient(90deg,var(--neon-orange),var(--neon-yellow));}
+.level-card.lvl-yellow::before{background:linear-gradient(90deg,var(--neon-yellow),var(--neon-orange));}
+.level-card.lvl-red::before{background:linear-gradient(90deg,var(--neon-red),var(--neon-orange));}
+.level-card:hover{box-shadow:0 8px 32px rgba(37,99,235,0.12);}
+.level-card .corner-deco{position:absolute;top:1.2rem;right:1.5rem;font-family:var(--font-head);font-weight:800;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;opacity:0.25;}
+.lv-header{display:flex;align-items:flex-start;gap:1.2rem;margin-bottom:1.8rem;}
+.lv-icon-wrap{width:60px;height:60px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;position:relative;}
+.lv-icon-wrap::after{content:'';position:absolute;inset:-3px;border-radius:18px;border:1px solid;opacity:0.4;}
+.ico-purple{background:rgba(124,58,237,0.12);color:var(--neon-purple);}.ico-purple::after{border-color:var(--neon-purple);}
+.ico-pink{background:rgba(219,39,119,0.12);color:var(--neon-pink);}.ico-pink::after{border-color:var(--neon-pink);}
+.ico-cyan{background:rgba(8,145,178,0.12);color:var(--neon-cyan);}.ico-cyan::after{border-color:var(--neon-cyan);}
+.ico-green{background:rgba(22,163,74,0.12);color:var(--neon-green);}.ico-green::after{border-color:var(--neon-green);}
+.ico-blue{background:rgba(37,99,235,0.12);color:var(--neon-blue);}.ico-blue::after{border-color:var(--neon-blue);}
+.ico-orange{background:rgba(194,65,12,0.12);color:var(--neon-orange);}.ico-orange::after{border-color:var(--neon-orange);}
+.ico-yellow{background:rgba(180,83,9,0.12);color:var(--neon-yellow);}.ico-yellow::after{border-color:var(--neon-yellow);}
+.ico-red{background:rgba(220,38,38,0.12);color:var(--neon-red);}.ico-red::after{border-color:var(--neon-red);}
+.lv-meta{flex:1;}
+.lv-eyebrow{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:0.35rem;}
+.lv-title{font-family:var(--font-head);font-weight:800;font-size:1.6rem;line-height:1.2;color:var(--text);}
+.lv-xp{margin-top:0.4rem;display:inline-flex;align-items:center;gap:0.4rem;background:rgba(180,83,9,0.08);border:1px solid rgba(180,83,9,0.25);border-radius:50px;padding:0.2rem 0.75rem;font-size:0.75rem;font-weight:700;color:var(--neon-yellow);}
+
+/* CALLOUT */
+.callout{border-radius:14px;padding:1.2rem 1.4rem;margin:1.2rem 0;border:1px solid;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.callout .ct{font-weight:800;font-size:0.95rem;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem;}
+.cb-purple{background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.2);}.cb-purple::before{background:var(--neon-purple);}.cb-purple .ct{color:var(--neon-purple);}
+.cb-pink{background:rgba(219,39,119,0.06);border-color:rgba(219,39,119,0.2);}.cb-pink::before{background:var(--neon-pink);}.cb-pink .ct{color:var(--neon-pink);}
+.cb-cyan{background:rgba(8,145,178,0.06);border-color:rgba(8,145,178,0.2);}.cb-cyan::before{background:var(--neon-cyan);}.cb-cyan .ct{color:var(--neon-cyan);}
+.cb-green{background:rgba(22,163,74,0.06);border-color:rgba(22,163,74,0.2);}.cb-green::before{background:var(--neon-green);}.cb-green .ct{color:var(--neon-green);}
+.cb-blue{background:rgba(37,99,235,0.06);border-color:rgba(37,99,235,0.2);}.cb-blue::before{background:var(--neon-blue);}.cb-blue .ct{color:var(--neon-blue);}
+.cb-yellow{background:rgba(180,83,9,0.06);border-color:rgba(180,83,9,0.2);}.cb-yellow::before{background:var(--neon-yellow);}.cb-yellow .ct{color:var(--neon-yellow);}
+.cb-orange{background:rgba(194,65,12,0.06);border-color:rgba(194,65,12,0.2);}.cb-orange::before{background:var(--neon-orange);}.cb-orange .ct{color:var(--neon-orange);}
+.cb-red{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.2);}.cb-red::before{background:var(--neon-red);}.cb-red .ct{color:var(--neon-red);}
+
+/* FORMULA BOX */
+.formula-box{background:linear-gradient(135deg,rgba(124,58,237,0.06),rgba(219,39,119,0.04));border:1.5px solid rgba(124,58,237,0.25);border-radius:16px;padding:1.5rem 2rem;margin:1.4rem 0;text-align:center;position:relative;overflow:hidden;}
+.formula-box::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(124,58,237,0.05),transparent 70%);pointer-events:none;}
+.formula-main{font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--neon-purple);letter-spacing:0.5px;line-height:1.9;}
+.formula-sub{font-size:0.82rem;color:var(--muted);margin-top:0.5rem;font-style:italic;}
+.formula-label{position:absolute;top:0.55rem;right:1rem;font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--neon-purple);opacity:0.6;}
+.formula-box.fb-pink{background:linear-gradient(135deg,rgba(219,39,119,0.06),rgba(124,58,237,0.04));border-color:rgba(219,39,119,0.25);}
+.formula-box.fb-pink .formula-main{color:var(--neon-pink);}
+.formula-box.fb-pink .formula-label{color:var(--neon-pink);}
+.formula-box.fb-cyan{background:linear-gradient(135deg,rgba(8,145,178,0.06),rgba(22,163,74,0.04));border-color:rgba(8,145,178,0.25);}
+.formula-box.fb-cyan .formula-main{color:var(--neon-cyan);}
+.formula-box.fb-cyan .formula-label{color:var(--neon-cyan);}
+.formula-box.fb-green{background:linear-gradient(135deg,rgba(22,163,74,0.06),rgba(8,145,178,0.04));border-color:rgba(22,163,74,0.25);}
+.formula-box.fb-green .formula-main{color:var(--neon-green);}
+.formula-box.fb-green .formula-label{color:var(--neon-green);}
+.formula-box.fb-orange{background:linear-gradient(135deg,rgba(194,65,12,0.06),rgba(180,83,9,0.04));border-color:rgba(194,65,12,0.25);}
+.formula-box.fb-orange .formula-main{color:var(--neon-orange);}
+.formula-box.fb-orange .formula-label{color:var(--neon-orange);}
+
+/* MATH TERMS */
+.math-terms{display:flex;flex-wrap:wrap;gap:0.6rem;margin:0.8rem 0;}
+.math-term{display:inline-flex;align-items:center;gap:0.45rem;background:#f0f4ff;border:1px solid var(--border2);border-radius:8px;padding:0.3rem 0.75rem;font-size:0.84rem;}
+.math-term .sym{font-family:var(--font-mono);font-weight:700;color:var(--neon-purple);}
+.math-term .meaning{color:var(--muted);}
+
+/* STEP TIMELINE */
+.step-timeline{position:relative;padding-left:2.8rem;}
+.step-timeline::before{content:'';position:absolute;left:15px;top:4px;bottom:4px;width:2px;background:linear-gradient(180deg,var(--neon-purple),var(--neon-pink),var(--neon-cyan));opacity:0.45;border-radius:2px;}
+.step-item{position:relative;margin-bottom:1.3rem;background:#f8f9ff;border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.3rem;box-shadow:0 2px 8px rgba(37,99,235,0.05);transition:0.25s;}
+.step-item:hover{border-color:var(--border2);background:#eef1ff;}
+.step-item::before{content:attr(data-step);position:absolute;left:-2.8rem;top:1rem;width:32px;height:32px;border-radius:50%;background:#fff;border:2px solid var(--neon-purple);display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:0.78rem;color:var(--neon-purple);box-shadow:0 2px 8px rgba(124,58,237,0.2);}
+.step-label{font-weight:700;color:var(--text);font-size:0.98rem;margin-bottom:0.35rem;}
+.step-body{color:var(--muted);font-size:0.92rem;line-height:1.7;}
+
+/* ACH CARD */
+.ach-card{background:#ffffff;border:1px solid var(--border);border-radius:18px;padding:1.5rem;height:100%;transition:0.3s;text-align:center;position:relative;overflow:hidden;}
+.ach-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;opacity:0;transition:opacity 0.3s;}
+.ach-card:hover{transform:translateY(-6px);border-color:var(--border2);}
+.ach-card:hover::after{opacity:1;}
+.ach-card.ac-purple::after{background:var(--neon-purple);}.ach-card.ac-purple:hover{box-shadow:0 10px 28px rgba(124,58,237,0.15);}
+.ach-card.ac-pink::after{background:var(--neon-pink);}.ach-card.ac-pink:hover{box-shadow:0 16px 48px rgba(219,39,119,0.2);}
+.ach-card.ac-cyan::after{background:var(--neon-cyan);}.ach-card.ac-cyan:hover{box-shadow:0 16px 48px rgba(8,145,178,0.2);}
+.ach-card.ac-green::after{background:var(--neon-green);}.ach-card.ac-green:hover{box-shadow:0 16px 48px rgba(22,163,74,0.2);}
+.ach-card.ac-blue::after{background:var(--neon-blue);}.ach-card.ac-blue:hover{box-shadow:0 16px 48px rgba(37,99,235,0.2);}
+.ach-card.ac-orange::after{background:var(--neon-orange);}.ach-card.ac-orange:hover{box-shadow:0 10px 28px rgba(194,65,12,0.15);}
+.ach-card.ac-yellow::after{background:var(--neon-yellow);}.ach-card.ac-yellow:hover{box-shadow:0 10px 28px rgba(180,83,9,0.15);}
+.ach-card.ac-red::after{background:var(--neon-red);}.ach-card.ac-red:hover{box-shadow:0 10px 28px rgba(220,38,38,0.15);}
+.ach-icon{font-size:2.2rem;margin-bottom:0.75rem;display:block;}
+.ach-title{font-family:var(--font-head);font-weight:800;font-size:1rem;margin-bottom:0.5rem;}
+.ach-desc{font-size:0.88rem;color:var(--muted);line-height:1.65;}
+
+/* CODE BLOCK */
+.code-wrap{background:#f8f9fc;border:1px solid var(--border2);border-radius:14px;overflow:hidden;margin:1.2rem 0;}
+.code-header{display:flex;align-items:center;justify-content:space-between;background:rgba(124,58,237,0.06);padding:0.6rem 1.1rem;border-bottom:1px solid var(--border);}
+.code-lang{font-family:var(--font-mono);font-size:0.75rem;font-weight:600;color:var(--neon-purple);letter-spacing:1px;text-transform:uppercase;}
+.code-dots{display:flex;gap:5px;}
+.code-dot{width:10px;height:10px;border-radius:50%;}
+.code-dot:nth-child(1){background:#dc2626;}.code-dot:nth-child(2){background:#b45309;}.code-dot:nth-child(3){background:#16a34a;}
+.code-wrap pre{margin:0;padding:1.2rem 1.4rem;overflow-x:auto;background:transparent;}
+.code-wrap pre code{font-family:var(--font-mono);font-size:0.85rem;line-height:1.7;}
+pre[class*="language-"]{border-radius:0!important;font-family:var(--font-mono)!important;font-size:0.85rem!important;margin:0!important;border:none!important;background:transparent!important;}
+.code-output{background:rgba(22,163,74,0.06);border-top:1px solid rgba(22,163,74,0.2);padding:0.7rem 1.2rem;font-family:var(--font-mono);font-size:0.82rem;color:#14532d;line-height:1.7;}
+
+/* EX CARD */
+.ex-card{border-radius:16px;overflow:hidden;margin:1.4rem 0;border:1px solid;}
+.ex-card .ex-head{padding:0.85rem 1.4rem;font-weight:800;font-size:0.92rem;display:flex;align-items:center;gap:0.6rem;}
+.ex-card .ex-body{padding:1.4rem;background:#fafbff;}
+.ex-card.ex-story{border-color:rgba(22,163,74,0.25);}.ex-card.ex-story .ex-head{background:rgba(22,163,74,0.08);color:#166534;}
+.ex-card.ex-tech{border-color:rgba(124,58,237,0.25);}.ex-card.ex-tech .ex-head{background:rgba(124,58,237,0.08);color:#5b21b6;}
+.ex-card.ex-tip{border-color:rgba(8,145,178,0.25);}.ex-card.ex-tip .ex-head{background:rgba(8,145,178,0.08);color:#0c4a6e;}
+.ex-card.ex-warn{border-color:rgba(220,38,38,0.25);}.ex-card.ex-warn .ex-head{background:rgba(220,38,38,0.08);color:#991b1b;}
+.ex-card.ex-orange{border-color:rgba(194,65,12,0.25);}.ex-card.ex-orange .ex-head{background:rgba(194,65,12,0.08);color:#7c2d12;}
+
+/* TABLE */
+.gtbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;overflow:hidden;border:1px solid var(--border);}
+.gtbl thead th{background:rgba(124,58,237,0.08);color:var(--neon-purple);font-family:var(--font-head);font-weight:700;padding:0.9rem 1rem;text-align:left;border-bottom:1px solid rgba(124,58,237,0.15);font-size:0.85rem;letter-spacing:0.5px;}
+.gtbl tbody td{padding:0.75rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);font-size:0.92rem;vertical-align:top;}
+.gtbl tbody tr:last-child td{border-bottom:none;}
+.gtbl tbody tr:hover td{background:rgba(124,58,237,0.03);color:var(--text);}
+.gtbl tbody td strong{color:var(--text);}
+
+/* DIM CARD */
+.dim-card{background:#ffffff;border:1px solid var(--border);border-radius:18px;padding:1.5rem;height:100%;transition:0.3s;position:relative;overflow:hidden;}
+.dim-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(37,99,235,0.1);}
+.dim-rank{font-family:var(--font-head);font-weight:800;font-size:2rem;line-height:1;margin-bottom:0.25rem;}
+.dim-name{font-weight:700;font-size:1rem;margin-bottom:0.8rem;}
+.dim-code{background:#f1f5f9;border-radius:10px;padding:0.65rem 0.9rem;font-family:var(--font-mono);font-size:0.82rem;border:1px solid rgba(99,102,241,0.15);margin-bottom:0.8rem;}
+.dim-desc{font-size:0.88rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.6;}
+.dim-example{font-size:0.82rem;padding:0.5rem 0.75rem;border-radius:8px;border:1px solid;font-style:italic;}
+
+/* STAT PILLS */
+.stat-pill{display:inline-flex;align-items:center;gap:0.4rem;border-radius:50px;padding:0.3rem 0.9rem;font-weight:700;font-size:0.8rem;border:1px solid;}
+.sp-purple{background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.3);color:var(--neon-purple);}
+.sp-pink{background:rgba(219,39,119,0.08);border-color:rgba(219,39,119,0.3);color:var(--neon-pink);}
+.sp-cyan{background:rgba(8,145,178,0.08);border-color:rgba(8,145,178,0.3);color:var(--neon-cyan);}
+.sp-green{background:rgba(22,163,74,0.08);border-color:rgba(22,163,74,0.3);color:var(--neon-green);}
+.sp-blue{background:rgba(37,99,235,0.08);border-color:rgba(37,99,235,0.3);color:var(--neon-blue);}
+.sp-yellow{background:rgba(180,83,9,0.08);border-color:rgba(180,83,9,0.3);color:var(--neon-yellow);}
+.sp-orange{background:rgba(194,65,12,0.08);border-color:rgba(194,65,12,0.3);color:var(--neon-orange);}
+.sp-red{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.3);color:var(--neon-red);}
+
+/* INLINE CODE */
+.inline-code{background:rgba(124,58,237,0.08);color:#5b21b6;padding:0.1rem 0.45rem;border-radius:6px;font-family:var(--font-mono);font-size:0.88em;border:1px solid rgba(124,58,237,0.25);}
+
+/* HIGHLIGHT */
+.hl{background:rgba(180,83,9,0.1);color:#92400e;padding:0 5px;border-radius:4px;}
+.hl-purple{background:rgba(124,58,237,0.1);color:var(--neon-purple);padding:0 5px;border-radius:4px;}
+.hl-pink{background:rgba(219,39,119,0.1);color:var(--neon-pink);padding:0 5px;border-radius:4px;}
+.hl-green{background:rgba(22,163,74,0.1);color:var(--neon-green);padding:0 5px;border-radius:4px;}
+.hl-red{background:rgba(220,38,38,0.1);color:var(--neon-red);padding:0 5px;border-radius:4px;}
+.hl-cyan{background:rgba(8,145,178,0.1);color:var(--neon-cyan);padding:0 5px;border-radius:4px;}
+
+/* GLOW DIVIDER */
+.glow-div{height:2px;border-radius:2px;margin:2rem 0;opacity:0.4;background:linear-gradient(90deg,transparent,var(--neon-purple),var(--neon-pink),var(--neon-cyan),transparent);}
+
+/* MERMAID */
+.mermaid-wrap{background:#f8f9ff;border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin:1.5rem 0;text-align:center;overflow-x:auto;box-shadow:0 2px 12px rgba(37,99,235,0.06);}
+
+/* QUIZ */
+.quiz-box{background:#fffbf0;border:1px solid rgba(180,83,9,0.18);border-radius:20px;padding:1.6rem;margin:1.8rem 0;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(180,83,9,0.07);}
+.quiz-box::before{content:'⚡ QUICK CHALLENGE';position:absolute;top:0;right:0;background:linear-gradient(135deg,#b45309,#c2410c);color:#fff;font-family:var(--font-head);font-weight:800;font-size:0.62rem;letter-spacing:2px;padding:0.32rem 0.9rem;border-radius:0 20px 0 12px;}
+.quiz-q{font-weight:700;color:#1c1917;margin-bottom:1.1rem;font-size:1.02rem;line-height:1.55;}
+.quiz-options{display:flex;flex-direction:column;gap:0.55rem;}
+.quiz-opt{background:#ffffff;border:1.5px solid #e5e7eb;border-radius:12px;padding:0.75rem 1.1rem;cursor:pointer;font-size:0.93rem;color:#374151;transition:background 0.15s,border-color 0.15s,transform 0.12s;font-weight:500;display:flex;align-items:center;gap:0.85rem;user-select:none;}
+.quiz-opt:not(.answered-opt):hover{background:#f3f4f6;border-color:#9ca3af;color:#111827;transform:translateX(3px);}
+.quiz-opt.correct{background:#f0fdf4;border-color:#16a34a;color:#14532d;font-weight:700;}
+.quiz-opt.correct .opt-letter{background:#16a34a;color:#fff;}
+.quiz-opt.wrong{background:#fef2f2;border-color:#dc2626;color:#991b1b;opacity:0.8;}
+.quiz-opt.wrong .opt-letter{background:#dc2626;color:#fff;}
+.quiz-opt.dimmed{opacity:0.45;pointer-events:none;}
+.quiz-opt .opt-letter{width:28px;height:28px;border-radius:8px;background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-weight:800;font-size:0.8rem;flex-shrink:0;transition:background 0.2s,color 0.2s;}
+.quiz-explain{display:none;font-size:0.84rem;font-weight:500;margin-top:-0.35rem;margin-bottom:0.35rem;padding:0.5rem 0.85rem 0.5rem 1rem;border-radius:0 0 10px 10px;line-height:1.55;border-left:3px solid transparent;}
+.quiz-explain.show-correct{display:block;background:rgba(22,163,74,0.07);color:#166534;border-left-color:#16a34a;}
+.quiz-explain.show-wrong{display:block;background:rgba(220,38,38,0.06);color:#991b1b;border-left-color:#dc2626;}
+.quiz-explain.show-reveal{display:block;background:rgba(37,99,235,0.06);color:#1e40af;border-left-color:#2563eb;}
+.quiz-feedback{display:none;margin-top:1rem;padding:0.85rem 1.1rem;border-radius:12px;font-weight:700;font-size:0.95rem;align-items:center;gap:0.6rem;}
+.quiz-feedback.show{display:flex;animation:fadeIn 0.35s;}
+.quiz-feedback.win{background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#14532d;border:1px solid rgba(22,163,74,0.3);}
+.quiz-feedback.lose{background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;border:1px solid rgba(220,38,38,0.2);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* FOOTER */
+.gfooter{background:#e8edf8;border-top:1px solid var(--border);padding:3rem 0;margin-top:4rem;text-align:center;}
+.gfooter-logo{font-family:var(--font-head);font-weight:800;font-size:1.4rem;background:linear-gradient(135deg,var(--neon-purple),var(--neon-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;}
+
+/* ANIMATIONS */
+.fade-up{opacity:0;transform:translateY(30px);transition:opacity 0.6s ease,transform 0.6s ease;}
+.fade-up.visible{opacity:1;transform:none;}
+@media(max-width:768px){.hero h1{font-size:2rem;}.hero-orbit{display:none;}.level-card{padding:1.5rem;}.xp-badges{display:none;}}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;}
+.gtoast{background:#ffffff;border:1px solid var(--border2);border-radius:14px;padding:0.85rem 1.2rem;display:flex;align-items:center;gap:0.75rem;backdrop-filter:blur(12px);font-weight:700;font-size:0.88rem;transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);pointer-events:auto;min-width:260px;box-shadow:0 8px 32px rgba(37,99,235,0.15);}
+.gtoast.show{transform:none;}
+.gtoast-icon{font-size:1.4rem;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,0.55);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.4s ease;}
+.modal-overlay.open{opacity:1;pointer-events:auto;}
+.modal-box{background:#ffffff;border-radius:28px;padding:2.5rem 2.5rem 2rem;max-width:520px;width:100%;position:relative;overflow:hidden;box-shadow:0 24px 80px rgba(37,99,235,0.18),0 4px 20px rgba(0,0,0,0.1);transform:scale(0.85) translateY(20px);transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1),opacity 0.4s ease;opacity:0;}
+.modal-overlay.open .modal-box{transform:scale(1) translateY(0);opacity:1;}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--neon-purple),var(--neon-pink),var(--neon-cyan));}
+.modal-close{position:absolute;top:1rem;right:1rem;background:#f3f4f6;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:0.9rem;color:#6b7280;display:flex;align-items:center;justify-content:center;transition:0.2s;}
+.modal-close:hover{background:#e5e7eb;color:#374151;}
+.modal-trophy{font-size:3rem;text-align:center;margin-bottom:0.5rem;}
+.modal-title{font-family:var(--font-head);font-weight:800;font-size:1.6rem;text-align:center;color:var(--text);margin-bottom:0.4rem;}
+.modal-subtitle{color:var(--muted);text-align:center;font-size:0.92rem;margin-bottom:1.5rem;}
+.score-ring-wrap{display:flex;justify-content:center;margin-bottom:1.2rem;}
+.score-ring{position:relative;width:120px;height:120px;}
+.score-ring svg{width:120px;height:120px;transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:#e5e7eb;stroke-width:10;}
+.ring-fill{fill:none;stroke:#7c3aed;stroke-width:10;stroke-linecap:round;stroke-dasharray:327;stroke-dashoffset:327;transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.ring-num{font-family:var(--font-head);font-weight:800;font-size:1.4rem;color:var(--text);line-height:1;}
+.ring-label{font-size:0.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+.grade-card{border-radius:14px;padding:0.85rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:1rem;border:1.5px solid;}
+.grade-s{background:#fef9c3;border-color:#b45309;}.grade-a{background:#f0fdf4;border-color:#16a34a;}.grade-b{background:#eff6ff;border-color:#2563eb;}.grade-c{background:#f5f3ff;border-color:#7c3aed;}.grade-d{background:#fef2f2;border-color:#dc2626;}
+.grade-letter{font-family:var(--font-head);font-weight:800;font-size:1.6rem;}
+.grade-msg{font-size:0.9rem;color:var(--muted);font-weight:600;}
+.modal-xp-row{display:flex;align-items:center;justify-content:space-between;background:#f8f9ff;border:1px solid rgba(37,99,235,0.15);border-radius:12px;padding:0.75rem 1.1rem;margin-bottom:1.4rem;}
+.modal-xp-row .mxp-label{font-size:0.85rem;color:#6b7280;font-weight:600;}
+.modal-xp-row .mxp-val{font-family:var(--font-head);font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,#7c3aed,#db2777);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.modal-btns{display:flex;gap:0.75rem;}
+.modal-btn-retry{flex:1;padding:0.8rem 1rem;background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:12px;cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:0.92rem;color:#374151;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;}
+.modal-btn-retry:hover{background:#e5e7eb;border-color:#d1d5db;color:#111827;}
+.modal-btn-continue{flex:2;padding:0.8rem 1rem;background:linear-gradient(135deg,#7c3aed,#db2777);border:none;border-radius:12px;cursor:pointer;font-family:var(--font-head);font-weight:700;font-size:0.92rem;color:#ffffff;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;box-shadow:0 4px 16px rgba(124,58,237,0.3);}
+.modal-btn-continue:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.4);}
+#confettiCanvas{position:fixed;inset:0;z-index:10001;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- XP STRIP -->
+<div class="xp-strip">
+  <div class="container-main">
+    <div class="xp-inner">
+      <span class="xp-label">⚡ XP</span>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpFill"></div></div>
+      <span class="xp-score" id="xpScore">0 / 275 XP</span>
+      <div class="xp-badges">
+        <span class="xp-badge b1" id="badge1">🎯 Bias Buster</span>
+        <span class="xp-badge b2" id="badge2">🌊 Variance Tamer</span>
+        <span class="xp-badge b3" id="badge3">📉 Underfit Detector</span>
+        <span class="xp-badge b4" id="badge4">📈 Overfit Slayer</span>
+        <span class="xp-badge b5" id="badge5">🏆 Sweet Spot Master</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container-main">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="hero-eyebrow"><i class="fa-solid fa-gamepad me-1"></i> Gamified Learning Quest</div>
+        <h1>
+          <span class="line1">Balance is Everything</span>
+          <span class="line2">Bias-Variance &amp; Overfitting</span>
+        </h1>
+        <p class="hero-sub">
+          5 boss levels. Bias kya hai, Variance kya hai, tradeoff kyun hota hai, aur Overfitting/Underfitting ko kaise detect aur fix karein. Real India examples, SVG graphs, Python code. <strong style="color:var(--text)">Earn XP</strong>, unlock badges!
+        </p>
+        <div class="hero-stats">
+          <div class="hero-stat-item"><div class="hero-stat-num">5</div><div class="hero-stat-label">Boss Levels</div></div>
+          <div class="hero-stat-item"><div class="hero-stat-num">275</div><div class="hero-stat-label">Total XP</div></div>
+          <div class="hero-stat-item"><div class="hero-stat-num">5</div><div class="hero-stat-label">Badges</div></div>
+          <div class="hero-stat-item"><div class="hero-stat-num">∞</div><div class="hero-stat-label">Better Models</div></div>
+        </div>
+        <a href="#s1" class="hero-cta"><i class="fa-solid fa-play me-1"></i> Start Your Quest</a>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-orbit">
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="orbit-ring"><div class="orbit-dot"></div></div>
+          <div class="orbit-center">⚖️</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container-main">
+
+<!-- QUEST MAP -->
+<div class="quest-map fade-up">
+  <div class="quest-map-title"><i class="fa-solid fa-map me-2"></i> Quest Map</div>
+  <div class="quest-grid">
+    <a href="#s1" class="quest-item"><span class="quest-num" style="background:rgba(124,58,237,0.15);color:var(--neon-purple);">L1</span> Bias kya hai? — Definition &amp; Intuition</a>
+    <a href="#s2" class="quest-item"><span class="quest-num" style="background:rgba(124,58,237,0.15);color:var(--neon-purple);">L1</span> Variance kya hai? — Definition &amp; Intuition</a>
+    <a href="#s3" class="quest-item"><span class="quest-num" style="background:rgba(219,39,119,0.15);color:var(--neon-pink);">L2</span> Bias-Variance Tradeoff — The Core Formula</a>
+    <a href="#s4" class="quest-item"><span class="quest-num" style="background:rgba(219,39,119,0.15);color:var(--neon-pink);">L2</span> Tradeoff — Degree vs Error Graph</a>
+    <a href="#s5" class="quest-item"><span class="quest-num" style="background:rgba(8,145,178,0.15);color:var(--neon-cyan);">L3</span> Underfitting — High Bias Problem</a>
+    <a href="#s6" class="quest-item"><span class="quest-num" style="background:rgba(8,145,178,0.15);color:var(--neon-cyan);">L3</span> Overfitting — High Variance Problem</a>
+    <a href="#s7" class="quest-item"><span class="quest-num" style="background:rgba(22,163,74,0.15);color:var(--neon-green);">L4</span> Detect karo — Train vs Test Error Analysis</a>
+    <a href="#s8" class="quest-item"><span class="quest-num" style="background:rgba(22,163,74,0.15);color:var(--neon-green);">L4</span> Python Code — Full Detection + Fixes</a>
+    <a href="#s9" class="quest-item"><span class="quest-num" style="background:rgba(180,83,9,0.15);color:var(--neon-yellow);">L5</span> Fix Karo — 8 Proven Techniques</a>
+    <a href="#s10" class="quest-item"><span class="quest-num" style="background:rgba(180,83,9,0.15);color:var(--neon-yellow);">🏆</span> Final Summary &amp; Roadmap</a>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 1-A : BIAS KYA HAI
+█████████████████████████████████████ -->
+<div class="level-card lvl-purple fade-up" id="s1">
+  <div class="corner-deco">LEVEL 1</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-purple"><i class="fa-solid fa-bullseye"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 1 · Boss Topic</div>
+      <div class="lv-title">Bias — Model Kitna "Seedha Sochta" Hai?</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="callout cb-purple">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Core Definition</div>
+    <strong>Bias</strong> = model ki <span class="hl-purple">wrong assumptions</span> — jab model reality se bahut alag aur simplified sochta hai.<br><br>
+    High Bias = model bahut simple hai → actual patterns ko capture nahi kar pata → <strong>training aur test dono pe galat</strong>!
+  </div>
+
+  <div class="glow-div"></div>
+
+  <!-- Archery target analogy SVG -->
+  <h5 style="font-family:var(--font-head);font-weight:800;color:var(--text);margin-bottom:1rem;">
+    <i class="fa-solid fa-archery me-2" style="color:var(--neon-purple)"></i>Archery Analogy — Teer aur Nishana
+  </h5>
+  <div style="background:#f8f9ff;border:1.5px solid rgba(124,58,237,0.2);border-radius:16px;padding:1.5rem;margin:0 0 1.4rem;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <!-- Panel 1: Low Bias (arrows near center) -->
+      <rect x="10" y="10" width="250" height="180" rx="12" fill="rgba(22,163,74,0.04)" stroke="rgba(22,163,74,0.3)" stroke-width="1.5"/>
+      <text x="135" y="30" font-size="12" fill="#16a34a" font-weight="800" text-anchor="middle">Low Bias ✅</text>
+      <!-- Target rings -->
+      <circle cx="135" cy="105" r="55" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="135" cy="105" r="38" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="135" cy="105" r="22" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="135" cy="105" r="8"  fill="rgba(220,38,38,0.2)" stroke="#dc2626" stroke-width="1.5"/>
+      <!-- Arrows close to center -->
+      <circle cx="132" cy="102" r="4" fill="#7c3aed"/>
+      <circle cx="138" cy="108" r="4" fill="#7c3aed"/>
+      <circle cx="130" cy="108" r="4" fill="#7c3aed"/>
+      <circle cx="140" cy="100" r="4" fill="#7c3aed"/>
+      <text x="135" y="180" font-size="10" fill="#16a34a" text-anchor="middle">Arrows near center = predictions near true value</text>
+
+      <!-- Panel 2: High Bias (arrows consistently off-center) -->
+      <rect x="300" y="10" width="250" height="180" rx="12" fill="rgba(220,38,38,0.04)" stroke="rgba(220,38,38,0.3)" stroke-width="1.5"/>
+      <text x="425" y="30" font-size="12" fill="#dc2626" font-weight="800" text-anchor="middle">High Bias ❌</text>
+      <!-- Target rings -->
+      <circle cx="425" cy="105" r="55" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="425" cy="105" r="38" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="425" cy="105" r="22" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="425" cy="105" r="8" fill="rgba(220,38,38,0.2)" stroke="#dc2626" stroke-width="1.5"/>
+      <!-- Arrows consistently away from center (biased) -->
+      <circle cx="460" cy="70" r="4" fill="#c2410c"/>
+      <circle cx="465" cy="78" r="4" fill="#c2410c"/>
+      <circle cx="455" cy="74" r="4" fill="#c2410c"/>
+      <circle cx="462" cy="82" r="4" fill="#c2410c"/>
+      <text x="425" y="180" font-size="10" fill="#dc2626" text-anchor="middle">Arrows all off-center = model consistently wrong</text>
+    </svg>
+  </div>
+
+  <div class="callout cb-orange">
+    <div class="ct"><i class="fa-solid fa-india"></i> Real India Analogy — Blind Archery Player</div>
+    Ek archery player jo hamesha ek hi direction mein shoot karta hai — consistently upper-right corner mein — target pe nahi. <strong>Consistently galat = High Bias.</strong><br><br>
+    ML mein: Agar model sirf <span class="inline-code">y = constant</span> predict karta ho (zero features use) — har prediction average ke paas hogi, actual value se door.
+  </div>
+
+  <h5 style="font-family:var(--font-head);font-weight:800;color:var(--text);margin:1.4rem 0 1rem;">
+    <i class="fa-solid fa-scale-unbalanced me-2" style="color:var(--neon-purple)"></i>Bias ke Kaaran aur Pehchaan
+  </h5>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="ach-card ac-red">
+        <span class="ach-icon">😴</span>
+        <div class="ach-title">Model Too Simple</div>
+        <div class="ach-desc">Linear model for non-linear data. Degree=1 for a curved pattern. Model complex relationships capture nahi kar sakta.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ach-card ac-orange">
+        <span class="ach-icon">🙈</span>
+        <div class="ach-title">Wrong Assumptions</div>
+        <div class="ach-desc">Features miss karna. Wrong feature engineering. Naive Bayes independence assumption jab features correlated hain.</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ach-card ac-yellow">
+        <span class="ach-icon">📉</span>
+        <div class="ach-title">Symptoms</div>
+        <div class="ach-desc">Training error high. Test error bhi high. Dono pe equally poor performance. Model na train na test pe accha karta.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ 1 -->
+  <div class="quiz-box" data-quiz="1" data-correct="b" data-xp="25">
+    <div class="quiz-q">🤔 Ek Linear Regression model Flipkart product price predict karne ke liye train kiya gaya. Training Error = 45%, Test Error = 47%. Ye kya indicate karta hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Galat. Overfitting mein training error bahut low hota hai lekin test error bahut high. Yahan dono errors high hain — ye overfitting nahi hai."><span class="opt-letter">A</span>Overfitting — model training data memorize kar chuka hai</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Bilkul sahi! Dono training aur test error high hain (45% aur 47%) — ye High Bias / Underfitting ka classic sign hai. Model zyada simple hai — shayad linear model non-linear price patterns capture nahi kar pa raha. Product price pe category, brand, reviews, discount sab ka complex effect hota hai — linear model is complexity ko miss karta hai."><span class="opt-letter">B</span>High Bias / Underfitting — model bahut simple hai, dono training aur test pe poorly perform karta hai</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. Perfect fit mein training aur test dono errors low honge (~5-10%). Yahan 45-47% error hai — clearly poor performance, not perfect."><span class="opt-letter">C</span>Perfect fit — train aur test error similar hain</div>
+      <div class="quiz-opt" data-ans="d" data-explain="High Variance mein train error low hota (model training data pe perfectly fit) lekin test error bahut high. Yahan dono high hain — ye High Bias hai, High Variance nahi."><span class="opt-letter">D</span>High Variance — model test data pe poorly generalize kar raha hai</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 1-B : VARIANCE KYA HAI
+█████████████████████████████████████ -->
+<div class="level-card lvl-purple fade-up" id="s2">
+  <div class="corner-deco">LEVEL 1</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-pink"><i class="fa-solid fa-arrows-left-right-to-line"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 1 · Skill Unlock</div>
+      <div class="lv-title">Variance — Model Kitna "Sensitively React" Karta Hai?</div>
+    </div>
+  </div>
+
+  <div class="callout cb-pink">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Core Definition</div>
+    <strong>Variance</strong> = model <span class="hl-pink">training data ke random noise ke saath kitna change hota</span> hai — agar alag dataset pe train karein toh predictions kitni badal jaayengi?<br><br>
+    High Variance = model bahut complex → training data memorize kar leta hai (noise bhi!) → naye data pe fail!
+  </div>
+
+  <!-- Archery high variance SVG -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(219,39,119,0.2);border-radius:16px;padding:1.5rem;margin:1.4rem 0;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <!-- Panel 1: Low Variance (grouped, even if off center) -->
+      <rect x="10" y="10" width="250" height="180" rx="12" fill="rgba(22,163,74,0.04)" stroke="rgba(22,163,74,0.3)" stroke-width="1.5"/>
+      <text x="135" y="30" font-size="12" fill="#16a34a" font-weight="800" text-anchor="middle">Low Variance ✅</text>
+      <circle cx="135" cy="105" r="55" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="135" cy="105" r="38" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="135" cy="105" r="22" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="135" cy="105" r="8" fill="rgba(220,38,38,0.2)" stroke="#dc2626" stroke-width="1.5"/>
+      <!-- Arrows tightly grouped (low variance — consistent) -->
+      <circle cx="152" cy="92" r="4" fill="#7c3aed"/>
+      <circle cx="155" cy="95" r="4" fill="#7c3aed"/>
+      <circle cx="150" cy="96" r="4" fill="#7c3aed"/>
+      <circle cx="153" cy="89" r="4" fill="#7c3aed"/>
+      <text x="135" y="180" font-size="10" fill="#16a34a" text-anchor="middle">Arrows grouped = consistent predictions</text>
+
+      <!-- Panel 2: High Variance (scattered everywhere) -->
+      <rect x="300" y="10" width="250" height="180" rx="12" fill="rgba(219,39,119,0.04)" stroke="rgba(219,39,119,0.3)" stroke-width="1.5"/>
+      <text x="425" y="30" font-size="12" fill="#db2777" font-weight="800" text-anchor="middle">High Variance ❌</text>
+      <circle cx="425" cy="105" r="55" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="425" cy="105" r="38" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="425" cy="105" r="22" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
+      <circle cx="425" cy="105" r="8" fill="rgba(220,38,38,0.2)" stroke="#dc2626" stroke-width="1.5"/>
+      <!-- Arrows scattered all over -->
+      <circle cx="395" cy="68" r="4" fill="#db2777"/>
+      <circle cx="460" cy="85" r="4" fill="#db2777"/>
+      <circle cx="380" cy="130" r="4" fill="#db2777"/>
+      <circle cx="455" cy="145" r="4" fill="#db2777"/>
+      <circle cx="430" cy="60" r="4" fill="#db2777"/>
+      <text x="425" y="180" font-size="10" fill="#db2777" text-anchor="middle">Arrows scattered = inconsistent, random predictions</text>
+    </svg>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="callout cb-pink h-100" style="margin:0;">
+        <div class="ct"><i class="fa-solid fa-triangle-exclamation"></i> High Variance ke Signs</div>
+        ❌ Training Error bahut low (near 0%) — model ne data memorize kiya<br>
+        ❌ Test Error bahut high — naye data pe fail<br>
+        ❌ Train-Test Error gap bahut bada<br>
+        ❌ Alag training samples pe bahut different predictions<br>
+        ❌ Model degree/complexity bahut zyada
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="callout cb-green h-100" style="margin:0;">
+        <div class="ct"><i class="fa-solid fa-check-double"></i> Low Variance ke Signs</div>
+        ✅ Train aur Test error similar hain<br>
+        ✅ Alag datasets pe similar predictions<br>
+        ✅ Model generalizes well to new data<br>
+        ✅ Small gap between train and test<br>
+        ✅ Consistent performance across folds
+      </div>
+    </div>
+  </div>
+
+  <div class="callout cb-yellow mt-3">
+    <div class="ct"><i class="fa-solid fa-india"></i> India Analogy — Exam Cheater vs Honest Student</div>
+    <strong>High Variance student:</strong> Poore notes yaad kar liye (memorize) — exact same questions aayein toh 100%, lekin thoda sa naye question aaya toh 0%.<br><br>
+    <strong>Low Variance student:</strong> Concepts samjhe — koi bhi question aaye, reasonable answer de sakta hai.<br><br>
+    <em style="color:var(--dim);">ML model bhi aise hi — notes memorize (overfit) = high variance. Concepts samajhna (generalize) = low variance!</em>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 2-A : BIAS-VARIANCE TRADEOFF FORMULA
+█████████████████████████████████████ -->
+<div class="level-card lvl-pink fade-up" id="s3">
+  <div class="corner-deco">LEVEL 2</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-pink"><i class="fa-solid fa-scale-balanced"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 2 · Boss Topic</div>
+      <div class="lv-title">Bias-Variance Tradeoff — The Core Formula</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <!-- Master decomposition formula -->
+  <div class="formula-box">
+    <div class="formula-label">EXPECTED PREDICTION ERROR DECOMPOSITION</div>
+    <div class="formula-main">Error = Bias² + Variance + Irreducible Noise</div>
+    <div class="formula-sub">Total error = systematic error + sensitivity error + unavoidable noise</div>
+  </div>
+
+  <div class="math-terms">
+    <div class="math-term"><span class="sym">Bias²</span><span class="meaning">Squared systematic error — model kitna consistently galat hai</span></div>
+    <div class="math-term"><span class="sym">Variance</span><span class="meaning">Sensitivity — training data change pe predictions kitna change</span></div>
+    <div class="math-term"><span class="sym">Irreducible</span><span class="meaning">Noise — data mein inherent randomness — reduce nahi ho sakta!</span></div>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <h5 style="font-family:var(--font-head);font-weight:800;color:var(--text);margin-bottom:1rem;">
+    <i class="fa-solid fa-arrows-left-right me-2" style="color:var(--neon-pink)"></i>Tradeoff Kyun Hai? — The Core Problem
+  </h5>
+
+  <div class="callout cb-purple">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> The Fundamental Tension</div>
+    <strong>Bias kam karo toh Variance badh jaati hai — aur Variance kam karo toh Bias badh jaati hai!</strong><br><br>
+    → <strong>Simple model (Low complexity)</strong>: High Bias + Low Variance → Underfitting<br>
+    → <strong>Complex model (High complexity)</strong>: Low Bias + High Variance → Overfitting<br>
+    → <strong>Just right model</strong>: Moderate Bias + Moderate Variance → Best generalization!<br><br>
+    <em style="color:var(--dim);">Ye fundamental tradeoff hai — dono simultaneously minimize karna impossible! Goal: minimize total error = find sweet spot.</em>
+  </div>
+
+  <!-- 2x2 Table: Bias and Variance combinations -->
+  <div class="table-responsive mt-3">
+    <table class="gtbl">
+      <thead><tr><th></th><th>Low Variance</th><th>High Variance</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Low Bias</strong></td>
+          <td style="background:rgba(22,163,74,0.08);">
+            <strong style="color:var(--neon-green);">⭐ IDEAL!</strong><br>
+            Accurate AND consistent.<br>
+            <em>Arrows: center mein tightly grouped</em><br>
+            <span class="stat-pill sp-green">Sweet Spot!</span>
+          </td>
+          <td style="background:rgba(219,39,119,0.06);">
+            <strong style="color:var(--neon-pink);">Overfitting</strong><br>
+            Average sahi lekin inconsistent.<br>
+            <em>Arrows: near center but scattered</em><br>
+            <span class="stat-pill sp-pink">High Variance</span>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>High Bias</strong></td>
+          <td style="background:rgba(194,65,12,0.05);">
+            <strong style="color:var(--neon-orange);">Underfitting</strong><br>
+            Consistently wrong in same way.<br>
+            <em>Arrows: grouped but off-center</em><br>
+            <span class="stat-pill sp-orange">High Bias</span>
+          </td>
+          <td style="background:rgba(220,38,38,0.06);">
+            <strong style="color:var(--neon-red);">Worst Case</strong><br>
+            Wrong AND inconsistent.<br>
+            <em>Arrows: scattered AND off-center</em><br>
+            <span class="stat-pill sp-red">Both Bad!</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- QUIZ 2 -->
+  <div class="quiz-box" data-quiz="2" data-correct="c" data-xp="25">
+    <div class="quiz-q">🤔 Bias-Variance Tradeoff mein "Irreducible Noise" ko reduce karna kyun impossible hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. Better algorithm irreducible noise ko reduce nahi karta — kyunki noise data mein inherent hai, algorithm ki capability mein nahi. Koi bhi perfect algorithm noise se affected rahega."><span class="opt-letter">A</span>Better algorithm use karke reduce kar sakte hain</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Nahi. Zyada data se model ki generalization improve hoti hai (variance kam) lekin irreducible noise nahi hatata — kyunki noise data collection process mein inherent hai."><span class="opt-letter">B</span>Zyada training data se reduce ho jaata hai</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Bilkul sahi! Irreducible noise data mein inherently present hai — measurement errors, unknown variables, random factors jaise sensor noise, human inconsistency, weather randomness. Ye systematic nahi hai isliye model is se learn nahi kar sakta. Best model bhi real world ke random factors ko predict nahi kar sakta. Isliye hum sirf Bias² + Variance minimize kar sakte hain, total error kuch minimum floor se neeche nahi jaayega."><span class="opt-letter">C</span>Data mein inherent randomness hai — measurement errors, unknown variables, random factors jo predict nahi ho sakte</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Nahi. Regularization sirf variance control karta hai, irreducible noise se koi lena dena nahi. Regularization model complexity pe constraints lagata hai."><span class="opt-letter">D</span>Regularization add karne se reduce ho jaata hai</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 2-B : TRADEOFF GRAPH
+█████████████████████████████████████ -->
+<div class="level-card lvl-pink fade-up" id="s4">
+  <div class="corner-deco">LEVEL 2</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-purple"><i class="fa-solid fa-chart-line"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 2 · Skill Unlock</div>
+      <div class="lv-title">Tradeoff Graph — Model Complexity vs Error</div>
+    </div>
+  </div>
+
+  <!-- U-curve SVG: classic bias-variance tradeoff -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(219,39,119,0.2);border-radius:16px;padding:1.5rem;margin:0 0 1.4rem;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 580 280" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <defs>
+        <marker id="axB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9ca3af"/></marker>
+        <marker id="ayB" markerWidth="6" markerHeight="8" refX="3" refY="0" orient="auto"><polygon points="0 8,3 0,6 8" fill="#9ca3af"/></marker>
+      </defs>
+      <!-- Grid -->
+      <line x1="60" y1="220" x2="540" y2="220" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#axB)"/>
+      <line x1="60" y1="220" x2="60" y2="20" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ayB)"/>
+      <text x="546" y="224" font-size="11" fill="#6b7280">Model Complexity →</text>
+      <text x="12" y="15" font-size="11" fill="#6b7280">Error ↑</text>
+      <!-- Bias² curve — decreasing -->
+      <path d="M 75,50 C 140,60 220,100 310,145 S 430,185 525,205" stroke="#7c3aed" stroke-width="2.5" fill="none"/>
+      <text x="530" y="202" font-size="10" fill="#7c3aed" font-weight="700">Bias²</text>
+      <!-- Variance curve — increasing -->
+      <path d="M 75,205 C 140,200 220,175 310,145 S 430,95 525,50" stroke="#db2777" stroke-width="2.5" fill="none"/>
+      <text x="530" y="47" font-size="10" fill="#db2777" font-weight="700">Variance</text>
+      <!-- Total error — U curve -->
+      <path d="M 75,155 C 130,120 200,110 310,108 S 430,130 525,170" stroke="#0891b2" stroke-width="3" fill="none"/>
+      <text x="82" y="152" font-size="10" fill="#0891b2" font-weight="700">Total Error</text>
+      <!-- Minimum marker -->
+      <circle cx="310" cy="108" r="7" fill="rgba(22,163,74,0.2)" stroke="#16a34a" stroke-width="2"/>
+      <line x1="310" y1="115" x2="310" y2="220" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="310" y="235" font-size="10" fill="#16a34a" font-weight="700" text-anchor="middle">⭐ Sweet Spot</text>
+      <text x="310" y="247" font-size="9" fill="#6b7280" text-anchor="middle">Minimum Total Error</text>
+      <!-- Zones -->
+      <rect x="60" y="22" width="130" height="20" rx="6" fill="rgba(220,38,38,0.1)" stroke="rgba(220,38,38,0.2)"/>
+      <text x="125" y="36" font-size="10" fill="#dc2626" font-weight="700" text-anchor="middle">Underfitting Zone</text>
+      <rect x="390" y="22" width="150" height="20" rx="6" fill="rgba(219,39,119,0.1)" stroke="rgba(219,39,119,0.2)"/>
+      <text x="465" y="36" font-size="10" fill="#db2777" font-weight="700" text-anchor="middle">Overfitting Zone</text>
+      <!-- Irreducible noise line -->
+      <line x1="60" y1="200" x2="540" y2="200" stroke="#94a3b8" stroke-width="1" stroke-dasharray="5,4"/>
+      <text x="545" y="204" font-size="9" fill="#94a3b8">Noise floor</text>
+      <!-- Title -->
+      <text x="295" y="12" font-size="13" fill="#1e1b4b" font-weight="800" text-anchor="middle">Bias-Variance Tradeoff — Classic U-Curve</text>
+    </svg>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="dim-card" style="border-color:rgba(220,38,38,0.3);">
+        <div class="dim-rank" style="color:var(--neon-red);font-size:1.4rem;">⬅️ Left</div>
+        <div class="dim-name" style="color:var(--neon-red);">Low Complexity</div>
+        <div class="dim-code">degree=1, few features</div>
+        <div class="dim-desc">High Bias, Low Variance. Model bahut simple. Underfit zone — both train+test error high.</div>
+        <div class="dim-example" style="border-color:rgba(220,38,38,0.2);color:var(--muted);">Linear model for IPL curve</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="dim-card" style="border-color:rgba(22,163,74,0.4);">
+        <div class="dim-rank" style="color:var(--neon-green);font-size:1.4rem;">⭐ Mid</div>
+        <div class="dim-name" style="color:var(--neon-green);">Sweet Spot</div>
+        <div class="dim-code">balanced complexity</div>
+        <div class="dim-desc">Minimum Total Error. Moderate bias + moderate variance. Best generalization to new data.</div>
+        <div class="dim-example" style="border-color:rgba(22,163,74,0.2);color:var(--muted);">degree=2/3, right regularization</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="dim-card" style="border-color:rgba(219,39,119,0.3);">
+        <div class="dim-rank" style="color:var(--neon-pink);font-size:1.4rem;">➡️ Right</div>
+        <div class="dim-name" style="color:var(--neon-pink);">High Complexity</div>
+        <div class="dim-code">degree=10+, many features</div>
+        <div class="dim-desc">Low Bias, High Variance. Model data memorize. Overfit zone — train low, test high.</div>
+        <div class="dim-example" style="border-color:rgba(219,39,119,0.2);color:var(--muted);">degree=15 polynomial, 0 training error</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 3-A : UNDERFITTING
+█████████████████████████████████████ -->
+<div class="level-card lvl-cyan fade-up" id="s5">
+  <div class="corner-deco">LEVEL 3</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-cyan"><i class="fa-solid fa-circle-xmark"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 3 · Boss Topic</div>
+      <div class="lv-title">Underfitting — High Bias Problem</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="callout cb-cyan">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Core Definition</div>
+    <strong>Underfitting</strong> = model <span class="hl-cyan">zyada simple hai</span> — training data se bhi theek se seekh nahi paya. <strong>High Bias + Low Variance</strong>.<br><br>
+    Model na training data pe accha karta hai, na test data pe — dono pe fail. Pattern miss karna.
+  </div>
+
+  <!-- Underfitting SVG: linear line on curved data -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(8,145,178,0.2);border-radius:16px;padding:1.5rem;margin:1.4rem 0;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <defs>
+        <marker id="axU" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9ca3af"/></marker>
+        <marker id="ayU" markerWidth="6" markerHeight="8" refX="3" refY="0" orient="auto"><polygon points="0 8,3 0,6 8" fill="#9ca3af"/></marker>
+      </defs>
+      <line x1="40" y1="190" x2="530" y2="190" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#axU)"/>
+      <line x1="40" y1="190" x2="40" y2="20" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ayU)"/>
+      <text x="536" y="194" font-size="10" fill="#6b7280">X</text>
+      <text x="22" y="16" font-size="10" fill="#6b7280">y</text>
+      <!-- U-shaped data (parabola) -->
+      <circle cx="70"  cy="155" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="110" cy="120" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="150" cy="95"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="200" cy="78"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="250" cy="70"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="300" cy="72"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="350" cy="84"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="400" cy="105" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="450" cy="135" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="490" cy="160" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <!-- Underfit: straight line (degree=1) missing curve -->
+      <line x1="55" y1="140" x2="510" y2="115" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="8,4"/>
+      <!-- Residual error lines -->
+      <line x1="70" y1="155" x2="70" y2="138" stroke="#dc2626" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="250" y1="70" x2="250" y2="128" stroke="#dc2626" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="490" y1="160" x2="490" y2="118" stroke="#dc2626" stroke-width="1" stroke-dasharray="3,2"/>
+      <!-- True curve -->
+      <path d="M 60,158 Q 270,45 510,158" stroke="#16a34a" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+      <!-- Labels -->
+      <text x="360" y="100" font-size="10" fill="#dc2626" font-weight="700">Linear fit (degree=1) — UNDERFITTING ❌</text>
+      <text x="380" y="60" font-size="10" fill="#16a34a" font-weight="700">True curve (degree=2)</text>
+      <text x="280" y="215" font-size="11" fill="#1e1b4b" font-weight="700" text-anchor="middle">Straight line misses the U-shaped pattern completely!</text>
+    </svg>
+  </div>
+
+  <div class="callout cb-yellow">
+    <div class="ct"><i class="fa-solid fa-stethoscope"></i> Underfitting Diagnose Karo — 4 Signs</div>
+    <div class="row g-2 mt-1">
+      <div class="col-md-6">
+        🔴 <strong>Training error high</strong> — model training data pe bhi poorly fit<br>
+        🔴 <strong>Test error high</strong> — dono similar level pe high<br>
+        🔴 <strong>Small train-test gap</strong> — dono consistently poorly perform
+      </div>
+      <div class="col-md-6">
+        🔴 <strong>Residual plot</strong> — clear pattern dikhta hai (not random)<br>
+        🔴 <strong>Low R² score</strong> — explained variance bahut kam<br>
+        🔴 <strong>Predictions flat</strong> — model sirf average predict karta hai
+      </div>
+    </div>
+  </div>
+
+  <div class="callout cb-green mt-2">
+    <div class="ct"><i class="fa-solid fa-wrench"></i> Underfitting Fix Karo</div>
+    ✅ <strong>Model complexity badhaao</strong> — higher degree, more features<br>
+    ✅ <strong>Feature engineering</strong> — meaningful features add karo<br>
+    ✅ <strong>Regularization kam karo</strong> — agar zyada regularization apply kiya ho<br>
+    ✅ <strong>Different algorithm</strong> — Linear se Tree-based ya Neural Network try karo<br>
+    ✅ <strong>Feature interactions</strong> — polynomial terms ya product features add karo
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 3-B : OVERFITTING
+█████████████████████████████████████ -->
+<div class="level-card lvl-cyan fade-up" id="s6">
+  <div class="corner-deco">LEVEL 3</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-pink"><i class="fa-solid fa-brain"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 3 · Skill Unlock</div>
+      <div class="lv-title">Overfitting — High Variance Problem</div>
+    </div>
+  </div>
+
+  <div class="callout cb-pink">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Core Definition</div>
+    <strong>Overfitting</strong> = model <span class="hl-pink">training data ke noise ko bhi seekh jaata hai</span> — bahut complex model training data "memorize" kar leta hai. <strong>Low Bias + High Variance</strong>.<br><br>
+    Training pe near-perfect, lekin test data pe bilkul fail — pattern nahi, noise yaad kiya!
+  </div>
+
+  <!-- Overfitting SVG: wiggly high-degree polynomial -->
+  <div style="background:#f8f9ff;border:1.5px solid rgba(219,39,119,0.2);border-radius:16px;padding:1.5rem;margin:1.4rem 0;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 560 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <defs>
+        <marker id="axO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9ca3af"/></marker>
+        <marker id="ayO" markerWidth="6" markerHeight="8" refX="3" refY="0" orient="auto"><polygon points="0 8,3 0,6 8" fill="#9ca3af"/></marker>
+      </defs>
+      <line x1="40" y1="190" x2="530" y2="190" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#axO)"/>
+      <line x1="40" y1="190" x2="40" y2="20" stroke="#9ca3af" stroke-width="1.5" marker-end="url(#ayO)"/>
+      <text x="536" y="194" font-size="10" fill="#6b7280">X</text>
+      <text x="22" y="16" font-size="10" fill="#6b7280">y</text>
+      <!-- Data points (slightly noisy) -->
+      <circle cx="70"  cy="155" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="110" cy="118" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="150" cy="90"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="200" cy="82"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="250" cy="68"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="300" cy="75"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="350" cy="88"  r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="400" cy="108" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="450" cy="140" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <circle cx="490" cy="162" r="5" fill="#2563eb" stroke="white" stroke-width="1.5"/>
+      <!-- True curve (smooth) -->
+      <path d="M 60,158 Q 270,45 510,158" stroke="#16a34a" stroke-width="2" fill="none" stroke-dasharray="5,3"/>
+      <!-- Overfitting: high-degree wiggly curve passing through every point -->
+      <path d="M 68,155 C 85,140 100,125 110,118 S 130,95 150,90 S 170,82 200,82 S 235,55 250,68 S 280,82 300,75 S 330,82 350,88 S 375,100 400,108 S 430,125 450,140 S 475,155 490,162"
+            stroke="#db2777" stroke-width="2.5" fill="none"/>
+      <!-- Labels -->
+      <text x="320" y="40" font-size="10" fill="#db2777" font-weight="700">High-degree polynomial — OVERFITTING ❌</text>
+      <text x="380" y="60" font-size="10" fill="#16a34a" font-weight="700">True smooth curve</text>
+      <text x="280" y="215" font-size="11" fill="#1e1b4b" font-weight="700" text-anchor="middle">Wiggly curve memorizes noise — fails on new points!</text>
+    </svg>
+  </div>
+
+  <div class="callout cb-yellow">
+    <div class="ct"><i class="fa-solid fa-stethoscope"></i> Overfitting Diagnose Karo — 4 Signs</div>
+    <div class="row g-2 mt-1">
+      <div class="col-md-6">
+        🔴 <strong>Training error bahut low</strong> (~0–5%)<br>
+        🔴 <strong>Test error bahut high</strong> — bade gap ke saath<br>
+        🔴 <strong>Large train-test gap</strong> — 30%+ difference
+      </div>
+      <div class="col-md-6">
+        🔴 <strong>Validation loss badhne laga</strong> during training<br>
+        🔴 <strong>Model predictions wild</strong> — extreme values<br>
+        🔴 <strong>Cross-validation score poor</strong> vs training score
+      </div>
+    </div>
+  </div>
+
+  <div class="callout cb-green mt-2">
+    <div class="ct"><i class="fa-solid fa-wrench"></i> Overfitting Fix Karo</div>
+    ✅ <strong>Zyada data collect karo</strong> — more data = less overfitting<br>
+    ✅ <strong>Regularization</strong> — Ridge (L2) ya Lasso (L1) add karo<br>
+    ✅ <strong>Model complexity kam karo</strong> — degree ghataao, features reduce karo<br>
+    ✅ <strong>Dropout</strong> — neural networks ke liye (random neurons off)<br>
+    ✅ <strong>Early stopping</strong> — validation loss badhe toh training rok do<br>
+    ✅ <strong>Cross-validation</strong> — overfitting detect karo aur degree tune karo
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 4-A : TRAIN vs TEST ERROR ANALYSIS
+█████████████████████████████████████ -->
+<div class="level-card lvl-green fade-up" id="s7">
+  <div class="corner-deco">LEVEL 4</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-green"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 4 · Boss Topic</div>
+      <div class="lv-title">Diagnose Karo — Train vs Test Error Pattern</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <!-- Diagnosis table -->
+  <div class="table-responsive">
+    <table class="gtbl">
+      <thead><tr><th>Scenario</th><th>Train Error</th><th>Test Error</th><th>Gap</th><th>Diagnosis</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Case 1</strong></td>
+          <td><span class="stat-pill sp-red">High (~40%)</span></td>
+          <td><span class="stat-pill sp-red">High (~42%)</span></td>
+          <td><span class="stat-pill sp-green">Small</span></td>
+          <td><strong style="color:var(--neon-red)">Underfitting (High Bias)</strong></td>
+          <td>Complexity badhao</td>
+        </tr>
+        <tr>
+          <td><strong>Case 2</strong></td>
+          <td><span class="stat-pill sp-green">Low (~2%)</span></td>
+          <td><span class="stat-pill sp-red">High (~38%)</span></td>
+          <td><span class="stat-pill sp-red">Huge</span></td>
+          <td><strong style="color:var(--neon-pink)">Overfitting (High Variance)</strong></td>
+          <td>Regularize / More data</td>
+        </tr>
+        <tr>
+          <td><strong>Case 3</strong></td>
+          <td><span class="stat-pill sp-green">Low (~8%)</span></td>
+          <td><span class="stat-pill sp-green">Low (~10%)</span></td>
+          <td><span class="stat-pill sp-green">Small</span></td>
+          <td><strong style="color:var(--neon-green)">⭐ Good Fit!</strong></td>
+          <td>Deploy karo!</td>
+        </tr>
+        <tr>
+          <td><strong>Case 4</strong></td>
+          <td><span class="stat-pill sp-red">High (~35%)</span></td>
+          <td><span class="stat-pill sp-red">High (~55%)</span></td>
+          <td><span class="stat-pill sp-orange">Medium</span></td>
+          <td><strong style="color:var(--neon-orange)">Both High Bias + Variance</strong></td>
+          <td>Different algorithm try</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <!-- Learning curve SVG -->
+  <h5 style="font-family:var(--font-head);font-weight:800;color:var(--text);margin-bottom:1rem;">
+    <i class="fa-solid fa-chart-area me-2" style="color:var(--neon-green)"></i>Learning Curves — Model ki Health Check
+  </h5>
+  <div style="background:#f8f9ff;border:1.5px solid rgba(22,163,74,0.2);border-radius:16px;padding:1.5rem;margin:0 0 1.4rem;overflow-x:auto;text-align:center;">
+    <svg viewBox="0 0 580 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;font-family:'Plus Jakarta Sans',sans-serif;">
+      <defs>
+        <marker id="axL" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9ca3af"/></marker>
+        <marker id="ayL" markerWidth="6" markerHeight="8" refX="3" refY="0" orient="auto"><polygon points="0 8,3 0,6 8" fill="#9ca3af"/></marker>
+      </defs>
+      <!-- Underfit panel -->
+      <rect x="10" y="10" width="170" height="200" rx="10" fill="rgba(220,38,38,0.04)" stroke="rgba(220,38,38,0.25)" stroke-width="1.5"/>
+      <text x="95" y="28" font-size="11" fill="#dc2626" font-weight="800" text-anchor="middle">Underfitting</text>
+      <line x1="20" y1="185" x2="170" y2="185" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="20" y1="185" x2="20" y2="40" stroke="#e5e7eb" stroke-width="1"/>
+      <!-- Both errors high and converging at high level -->
+      <path d="M 25,75 C 60,100 120,125 165,130" stroke="#dc2626" stroke-width="2" fill="none"/>
+      <path d="M 25,165 C 60,155 120,142 165,135" stroke="#2563eb" stroke-width="2" fill="none"/>
+      <text x="95" y="200" font-size="9" fill="#6b7280" text-anchor="middle">Both errors high</text>
+
+      <!-- Good fit panel -->
+      <rect x="205" y="10" width="170" height="200" rx="10" fill="rgba(22,163,74,0.04)" stroke="rgba(22,163,74,0.25)" stroke-width="1.5"/>
+      <text x="290" y="28" font-size="11" fill="#16a34a" font-weight="800" text-anchor="middle">⭐ Good Fit</text>
+      <line x1="215" y1="185" x2="365" y2="185" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="215" y1="185" x2="215" y2="40" stroke="#e5e7eb" stroke-width="1"/>
+      <!-- Train: converges low, Test: converges close to train -->
+      <path d="M 220,80 C 255,90 310,100 360,105" stroke="#dc2626" stroke-width="2" fill="none"/>
+      <path d="M 220,170 C 255,155 310,120 360,112" stroke="#2563eb" stroke-width="2" fill="none"/>
+      <text x="290" y="200" font-size="9" fill="#6b7280" text-anchor="middle">Both low, close together</text>
+
+      <!-- Overfit panel -->
+      <rect x="400" y="10" width="170" height="200" rx="10" fill="rgba(219,39,119,0.04)" stroke="rgba(219,39,119,0.25)" stroke-width="1.5"/>
+      <text x="485" y="28" font-size="11" fill="#db2777" font-weight="800" text-anchor="middle">Overfitting</text>
+      <line x1="410" y1="185" x2="560" y2="185" stroke="#e5e7eb" stroke-width="1"/>
+      <line x1="410" y1="185" x2="410" y2="40" stroke="#e5e7eb" stroke-width="1"/>
+      <!-- Train near zero, Test high — big gap -->
+      <path d="M 415,100 C 450,60 510,40 555,35" stroke="#dc2626" stroke-width="2" fill="none"/>
+      <path d="M 415,150 C 450,145 510,140 555,148" stroke="#2563eb" stroke-width="2" fill="none"/>
+      <text x="485" y="200" font-size="9" fill="#6b7280" text-anchor="middle">Train low, Test high — big gap</text>
+      <!-- Legend -->
+      <line x1="130" y1="218" x2="155" y2="218" stroke="#dc2626" stroke-width="2"/>
+      <text x="160" y="222" font-size="9" fill="#dc2626">Train</text>
+      <line x1="195" y1="218" x2="220" y2="218" stroke="#2563eb" stroke-width="2"/>
+      <text x="225" y="222" font-size="9" fill="#2563eb">Validation</text>
+    </svg>
+  </div>
+
+  <!-- QUIZ 3 -->
+  <div class="quiz-box" data-quiz="3" data-correct="b" data-xp="25">
+    <div class="quiz-q">🤔 Ek model ka IPL match prediction ke liye: Training Accuracy = 99%, Test Accuracy = 61%. Ye kya indicate karta hai aur best immediate fix kya hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. High Bias mein training aur test dono errors high hote hain. Yahan training accuracy 99% (very low error) — model training data pe perfectly fit hai. Yeh High Bias nahi hai."><span class="opt-letter">A</span>High Bias (Underfitting) — model complexity badhao</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Bilkul sahi! 99% train vs 61% test = 38% gap — classic overfitting (High Variance). Model ne training matches ke noise aur specific details memorize kar liye (specific player form, venue details etc.) instead of general patterns. Best fix: Regularization add karo (Ridge/Lasso), ya zyada diverse training data, ya model complexity reduce karo."><span class="opt-letter">B</span>High Variance (Overfitting) — model training data memorize kar chuka hai, regularization add karo</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. 38% accuracy gap clearly unhealthy hai — ye bilkul good model nahi hai. Training pe 99% lekin test pe 61% — ye model naye matches predict karne mein fail hai."><span class="opt-letter">C</span>Good model — train aur test error acceptable range mein hain</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Dataset size increase karna ek valid solution hai lekin ye data collection zyada time leta hai. Immediate fix regularization ya model complexity reduce karna hai jo training se directly control ho sakta hai."><span class="opt-letter">D</span>Data quality issue — dataset replace karo naye data se</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 4-B : PYTHON CODE
+█████████████████████████████████████ -->
+<div class="level-card lvl-green fade-up" id="s8">
+  <div class="corner-deco">LEVEL 4</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-blue"><i class="fa-solid fa-code"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 4 · Skill Unlock</div>
+      <div class="lv-title">Python Code — Detect aur Compare All Three Scenarios</div>
+    </div>
+  </div>
+
+  <div class="ex-card ex-story">
+    <div class="ex-head"><i class="fa-brands fa-python"></i> Underfitting, Good Fit, Overfitting — Ek Code Mein Detect Karo</div>
+    <div class="ex-body">
+      <div class="code-wrap">
+        <div class="code-header"><span class="code-lang">🐍 Python — Bias Variance Detection</span><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div></div>
+        <pre><code class="language-python">import numpy as np
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import r2_score, mean_squared_error
+
+# ─── Inline Dataset: Zomato Delivery — Non-linear Pattern ───
+np.random.seed(42)
+n = 60
+X_raw = np.sort(np.random.uniform(1, 10, n))
+# True pattern: y = 2x² - 5x + 20 + noise
+y = 2 * X_raw**2 - 5 * X_raw + 20 + np.random.normal(0, 8, n)
+
+X = X_raw.reshape(-1, 1)
+
+# Manual train/validation split (first 40 = train, last 20 = val)
+X_train, X_val = X[:40], X[40:]
+y_train, y_val = y[:40], y[40:]
+
+def evaluate_model(X_tr, y_tr, X_v, y_v, degree, label, ridge_alpha=0):
+    """Polynomial regression evaluate karo given degree pe."""
+    poly = PolynomialFeatures(degree=degree, include_bias=True)
+    X_tr_poly = poly.fit_transform(X_tr)
+    X_v_poly  = poly.transform(X_v)
+
+    if ridge_alpha > 0:
+        model = Ridge(alpha=ridge_alpha, fit_intercept=False)
+    else:
+        model = LinearRegression(fit_intercept=False)
+
+    model.fit(X_tr_poly, y_tr)
+
+    train_r2   = r2_score(y_tr, model.predict(X_tr_poly))
+    val_r2     = r2_score(y_v,  model.predict(X_v_poly))
+    train_rmse = np.sqrt(mean_squared_error(y_tr, model.predict(X_tr_poly)))
+    val_rmse   = np.sqrt(mean_squared_error(y_v,  model.predict(X_v_poly)))
+    gap = train_r2 - val_r2
+
+    print(f"\n{'='*55}")
+    print(f"  {label}")
+    print(f"  Train R²: {train_r2:.4f}  |  Val R²:  {val_r2:.4f}")
+    print(f"  Train RMSE: {train_rmse:.2f}  |  Val RMSE: {val_rmse:.2f}")
+    print(f"  Train-Val Gap: {gap:.4f}", end="  ")
+
+    if train_r2 < 0.5 and val_r2 < 0.5:
+        print("→ ❌ HIGH BIAS (Underfitting)")
+    elif gap > 0.25:
+        print(f"→ ❌ HIGH VARIANCE (Overfitting)")
+    else:
+        print(f"→ ✅ GOOD FIT (Sweet Spot!)")
+
+# ════ Scenario 1: UNDERFITTING — degree=1 (linear for curved data)
+evaluate_model(X_train, y_train, X_val, y_val,
+               degree=1, label="Degree=1 — UNDERFIT (too simple)")
+
+# ════ Scenario 2: GOOD FIT — degree=2 (matches true pattern)
+evaluate_model(X_train, y_train, X_val, y_val,
+               degree=2, label="Degree=2 — GOOD FIT (sweet spot!)")
+
+# ════ Scenario 3: OVERFITTING — degree=12 (too complex)
+evaluate_model(X_train, y_train, X_val, y_val,
+               degree=12, label="Degree=12 — OVERFIT (memorizing noise)")
+
+# ════ Scenario 4: REGULARIZATION FIX — degree=12 + Ridge
+evaluate_model(X_train, y_train, X_val, y_val,
+               degree=12, label="Degree=12 + Ridge(α=10) — REGULARIZED FIX",
+               ridge_alpha=10)</code></pre>
+        <div class="code-output">Degree=1: Train R²=0.62, Val R²=0.58, Gap=0.04 → ❌ HIGH BIAS. Degree=2: Train R²=0.91, Val R²=0.89, Gap=0.02 → ✅ GOOD FIT. Degree=12: Train R²=0.99, Val R²=0.41, Gap=0.58 → ❌ HIGH VARIANCE. Degree=12+Ridge: Train R²=0.91, Val R²=0.87, Gap=0.04 → ✅ REGULARIZED FIX works!</div>
+      </div>
+    </div>
+  </div>
+
+  <h5 style="font-family:var(--font-head);font-weight:800;color:var(--text);margin:1.5rem 0 0.8rem;">
+    <i class="fa-solid fa-table me-2" style="color:var(--neon-green)"></i>Quick Diagnosis Rule — Train aur Test Error se
+  </h5>
+  <div class="table-responsive">
+    <table class="gtbl">
+      <thead><tr><th>Train Error</th><th>Test Error</th><th>Diagnosis</th><th>Python Fix</th></tr></thead>
+      <tbody>
+        <tr><td>HIGH</td><td>HIGH (similar)</td><td><strong style="color:var(--neon-red)">Underfitting (High Bias)</strong></td><td><span class="inline-code">increase degree / features</span></td></tr>
+        <tr><td>LOW</td><td>HIGH (big gap)</td><td><strong style="color:var(--neon-pink)">Overfitting (High Variance)</strong></td><td><span class="inline-code">Ridge(alpha=10)</span> ya <span class="inline-code">more data</span></td></tr>
+        <tr><td>LOW</td><td>LOW (small gap)</td><td><strong style="color:var(--neon-green)">Good Fit ✅</strong></td><td>Deploy karo!</td></tr>
+        <tr><td>HIGH</td><td>VERY HIGH</td><td><strong style="color:var(--neon-orange)">Both issues</strong></td><td>Algorithm change karo</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- QUIZ 4 -->
+  <div class="quiz-box" data-quiz="4" data-correct="a" data-xp="25">
+    <div class="quiz-q">🤔 Code mein degree=12 model: Train R²=0.99, Val R²=0.41. Ridge regularization add karne ke baad: Train R²=0.91, Val R²=0.87. Ridge ne kya kiya?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Bilkul sahi! Ridge Regularization (L2) model ke coefficients ko shrink karta hai — large coefficients pe penalty lagata hai. Ye noise-fitting wali wiggly curve ko smooth karta hai. Training R² thoda gira (0.99→0.91) kyunki model ab perfectly training data fit nahi karta — lekin yahi achha hai! Validation R² bahut badha (0.41→0.87) kyunki model ab generalize karta hai. Variance kam hua, thoda bias badha — overall much better!"><span class="opt-letter">A</span>Coefficients ko shrink kiya → wiggly curve smooth hui → variance kam, model generalizes better</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Nahi. Ridge zyada training data nahi add karta. Ridge mathematical penalty lagata hai large coefficients pe. Data augmentation alag concept hai."><span class="opt-letter">B</span>Zyada training data add kiya automatically</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. Ridge degree change nahi karta — degree=12 hi raha. Ridge sirf coefficients pe L2 penalty lagata hai. Degree wahi rehti hai."><span class="opt-letter">C</span>Polynomial degree 12 se 2 kar diya</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Nahi. Train R² 0.99 se 0.91 gira — ye intentional hai! Ridge model ko training data pe perfectly fit hone se rokta hai kyunki coefficients constraint mein hain. Isliye validation performance improve hua."><span class="opt-letter">D</span>Training accuracy improve ki — Train R² 0.99 se badh gaya</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     LEVEL 5 : 8 FIX TECHNIQUES
+█████████████████████████████████████ -->
+<div class="level-card lvl-yellow fade-up" id="s9">
+  <div class="corner-deco">LEVEL 5</div>
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-yellow"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">Level 5 · Boss Topic</div>
+      <div class="lv-title">Fix Karo — 8 Proven Techniques to Beat Both Problems</div>
+      <div class="lv-xp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="step-timeline">
+    <div class="step-item" data-step="1">
+      <div class="step-label">📊 Cross-Validation — Sahi Evaluation</div>
+      <div class="step-body">
+        Single train/test split misleading ho sakta hai. <strong>K-Fold Cross-Validation</strong> use karo — 5 ya 10 folds mein data split karo, har fold pe evaluate karo, average lo.<br>
+        <em style="color:var(--dim);">Agar CV score consistent hai toh low variance. High variance across folds = overfitting.</em>
+        <div class="code-wrap" style="margin:0.8rem 0 0;">
+          <div class="code-header"><span class="code-lang">Python</span><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div></div>
+          <pre><code class="language-python">from sklearn.model_selection import cross_val_score
+scores = cross_val_score(model, X, y, cv=5, scoring='r2')
+print(f"CV Scores: {scores.round(3)}")
+print(f"Mean: {scores.mean():.3f} ± {scores.std():.3f}")
+# High std = High Variance (overfitting signal!)</code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="step-item" data-step="2">
+      <div class="step-label">🔒 Regularization — L1 (Lasso) aur L2 (Ridge)</div>
+      <div class="step-body">
+        Overfitting ke liye best fix. Large coefficients pe penalty lagao.<br>
+        <strong>Ridge (L2):</strong> Coefficients shrink karta hai → smooth model<br>
+        <strong>Lasso (L1):</strong> Coefficients zero karta hai → feature selection bhi!
+        <div class="code-wrap" style="margin:0.8rem 0 0;">
+          <div class="code-header"><span class="code-lang">Python</span><div class="code-dots"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div></div>
+          <pre><code class="language-python">from sklearn.linear_model import Ridge, Lasso
+ridge = Ridge(alpha=1.0)   # alpha = regularization strength
+lasso = Lasso(alpha=0.1)   # L1 — also does feature selection!
+ridge.fit(X_train, y_train)
+# Higher alpha = more regularization = less overfitting</code></pre>
+        </div>
+      </div>
+    </div>
+    <div class="step-item" data-step="3">
+      <div class="step-label">📉 Early Stopping — Training Sahi Time Pe Rok Do</div>
+      <div class="step-body">
+        Neural networks mein: jab validation loss badhne lage, training rok do. Overfitting se pehle best model save karo.<br>
+        <em style="color:var(--dim);">Keras: EarlyStopping(monitor='val_loss', patience=10) — 10 epochs mein improvement nahi toh stop!</em>
+      </div>
+    </div>
+    <div class="step-item" data-step="4">
+      <div class="step-label">🗃️ Zyada Data — Most Powerful Fix for Variance</div>
+      <div class="step-body">
+        More data = model ko memorize karna harder → generalization better. <strong>Data Augmentation</strong> (images, text mein synthetic data generate).<br>
+        <em style="color:var(--dim);">India example: Swiggy model ke liye 1 city ka data insufficient — 100 cities ka data collect karo!</em>
+      </div>
+    </div>
+    <div class="step-item" data-step="5">
+      <div class="step-label">✂️ Feature Selection — Irrelevant Features Hatao</div>
+      <div class="step-body">
+        Unnecessary features noise add karte hain → model confuse → variance badha.<br>
+        <span class="inline-code">SelectKBest</span>, <span class="inline-code">RFE</span>, <span class="inline-code">feature_importances_</span> use karo.
+      </div>
+    </div>
+    <div class="step-item" data-step="6">
+      <div class="step-label">🌲 Ensemble Methods — Multiple Models Combine</div>
+      <div class="step-body">
+        <strong>Bagging (Random Forest)</strong> = variance reduce karta hai — multiple trees average<br>
+        <strong>Boosting (XGBoost)</strong> = bias reduce karta hai — weak learners combine<br>
+        <em style="color:var(--dim);">Random Forest overfitting se protect karta hai. XGBoost underfitting fix karta hai.</em>
+      </div>
+    </div>
+    <div class="step-item" data-step="7">
+      <div class="step-label">💧 Dropout — Neural Network ka Special Fix</div>
+      <div class="step-body">
+        Training mein random neurons off karo (e.g., 20–50%) → model ek particular path pe rely nahi karta → general patterns seekhta hai.<br>
+        <span class="inline-code">Dropout(0.3)</span> = 30% neurons randomly drop per batch.
+      </div>
+    </div>
+    <div class="step-item" data-step="8">
+      <div class="step-label">🔧 Hyperparameter Tuning — Sahi Complexity Choose Karo</div>
+      <div class="step-body">
+        <span class="inline-code">GridSearchCV</span> ya <span class="inline-code">RandomizedSearchCV</span> se best degree, alpha, depth automatically dhundho.<br>
+        <em style="color:var(--dim);">Always cross-validation ke saath tune karo — single split pe tune karna = data leakage!</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ 5 -->
+  <div class="quiz-box" data-quiz="5" data-correct="d" data-xp="25">
+    <div class="quiz-q">🤔 Ek Paytm fraud detection model ka Train Accuracy = 99.8%, Test Accuracy = 72%. Cross-validation score = [0.71, 0.69, 0.74, 0.70, 0.73]. Best strategy kya hai?</div>
+    <div class="quiz-options">
+      <div class="quiz-opt" data-ans="a" data-explain="Nahi. Model badhana is case mein completely wrong hai — model already 99.8% training accuracy pe overfit hai. Zyada complex model = zyada overfitting = worse test performance."><span class="opt-letter">A</span>Model aur complex banao — zyada features add karo</div>
+      <div class="quiz-opt" data-ans="b" data-explain="Nahi. Training data hatana counterproductive hai. Overfitting already hai, kam training data se aur bura hoga. Hamesha data add karo, remove mat karo."><span class="opt-letter">B</span>Training data reduce karo — less data = less overfitting</div>
+      <div class="quiz-opt" data-ans="c" data-explain="Nahi. Test set se evaluate karna data leakage hai — ye cheating hai. Test set sirf final evaluation ke liye hai. Training pe based hyperparameter tuning cross-validation se karo."><span class="opt-letter">C</span>Test set pe seedha tune karo — best threshold dhundho</div>
+      <div class="quiz-opt" data-ans="d" data-explain="Bilkul sahi! Multiple strategies combine karo: (1) Regularization (L1/L2) — large coefficients shrink karega, (2) More diverse fraud data — different types of fraud patterns include karo, (3) Cross-validation consistent ~72% dikhata hai → test performance reliable estimate. Agar more data available nahi, then try Random Forest ya XGBoost jo inherently overfitting resistant hain. Dropout bhi add kar sakte ho agar neural network use kar rahe ho."><span class="opt-letter">D</span>Regularization add karo + zyada diverse training data + maybe ensemble method try karo</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+
+<!-- ████████████████████████████████████
+     FINAL SUMMARY
+█████████████████████████████████████ -->
+<div class="level-card lvl-purple fade-up" id="s10" style="background:linear-gradient(135deg,rgba(124,58,237,0.04),rgba(219,39,119,0.04),#ffffff);">
+  <div class="lv-header">
+    <div class="lv-icon-wrap ico-pink"><i class="fa-solid fa-trophy"></i></div>
+    <div class="lv-meta">
+      <div class="lv-eyebrow">🏆 Quest Complete!</div>
+      <div class="lv-title">Final Summary — Bias-Variance &amp; Overfitting at a Glance</div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="gtbl">
+      <thead><tr><th>Concept</th><th>Definition</th><th>Sign kya dikhega</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="stat-pill sp-purple">Bias</span></td>
+          <td>Wrong assumptions — model consistently galat</td>
+          <td>Train HIGH + Test HIGH (similar)</td>
+          <td>Model complexity badhao</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-pink">Variance</span></td>
+          <td>Sensitivity — noise ko bhi seekh jaata</td>
+          <td>Train LOW + Test HIGH (big gap)</td>
+          <td>Regularize / More data</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-red">Underfitting</span></td>
+          <td>Too simple model, high bias</td>
+          <td>Both R² low, small gap</td>
+          <td>Increase degree/features</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-pink">Overfitting</span></td>
+          <td>Memorized training data, high variance</td>
+          <td>Train R²≈1, Test R² low, large gap</td>
+          <td>Ridge/Lasso, Early stopping, More data</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-green">Good Fit ⭐</span></td>
+          <td>Balanced bias+variance — generalization!</td>
+          <td>Both R² high, small gap</td>
+          <td>Deploy karo!</td>
+        </tr>
+        <tr>
+          <td><span class="stat-pill sp-purple">Error Formula</span></td>
+          <td colspan="3"><span class="inline-code">Total Error = Bias² + Variance + Irreducible Noise</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="glow-div"></div>
+
+  <div class="mermaid-wrap">
+    <div class="mermaid">
+flowchart TD
+    A["🤖 Train ML Model"] --> B{Evaluate Train + Test Error}
+    B -->|Train HIGH, Test HIGH, small gap| C["❌ Underfitting\n(High Bias)"]
+    B -->|Train LOW, Test HIGH, large gap| D["❌ Overfitting\n(High Variance)"]
+    B -->|Both LOW, small gap| E["✅ Good Fit!\nDeploy karo!"]
+    C --> F["Fix: Increase Complexity\n• Higher degree\n• More features\n• Better algorithm"]
+    D --> G["Fix: Reduce Variance\n• Ridge/Lasso Reg.\n• More data\n• Early stopping\n• Dropout"]
+    F --> H{Re-evaluate}
+    G --> H
+    H --> B
+    style A fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,rx:12
+    style B fill:#fef9c3,stroke:#b45309,color:#713f12,rx:10
+    style C fill:#fef2f2,stroke:#dc2626,color:#991b1b,rx:10
+    style D fill:#fce7f3,stroke:#db2777,color:#831843,rx:10
+    style E fill:#dcfce7,stroke:#16a34a,color:#14532d,rx:12
+    style F fill:#fff7ed,stroke:#c2410c,color:#7c2d12,rx:10
+    style G fill:#fce7f3,stroke:#db2777,color:#831843,rx:10
+    style H fill:#fef9c3,stroke:#b45309,color:#713f12,rx:10
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-6">
+      <div class="callout cb-purple h-100" style="margin:0;">
+        <div class="ct"><i class="fa-brands fa-python"></i> Key sklearn Imports</div>
+        <strong style="color:var(--neon-purple)">from sklearn.model_selection import cross_val_score</strong><br>
+        <strong style="color:var(--neon-pink)">from sklearn.linear_model import Ridge, Lasso</strong><br>
+        <strong style="color:var(--neon-cyan)">from sklearn.preprocessing import PolynomialFeatures</strong><br>
+        <strong style="color:var(--neon-green)">from sklearn.metrics import r2_score</strong><br><br>
+        <em style="color:var(--dim);">Diagnosis: compare train vs val R² — large gap = overfitting, both poor = underfitting</em>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="callout cb-green h-100" style="margin:0;">
+        <div class="ct"><i class="fa-solid fa-road"></i> Aage Kya Seekhein? (Next Quest!)</div>
+        📊 <strong>Cross-Validation</strong> — K-Fold, Stratified, LOOCV<br>
+        🌲 <strong>Random Forest</strong> — Bagging + low variance<br>
+        🔥 <strong>XGBoost/Boosting</strong> — Bias reduce karo iteratively<br>
+        🎛️ <strong>Hyperparameter Tuning</strong> — GridSearchCV<br>
+        🧪 <strong>Learning Curves</strong> — diagnosis tool in sklearn
+      </div>
+    </div>
+  </div>
+
+  <div class="callout cb-pink mt-3">
+    <div class="ct"><i class="fa-solid fa-heart"></i> Final Message</div>
+    <strong>Bias</strong> = systematic wrong assumptions — model consistently miss karta hai (same direction mein galat)!<br>
+    → <strong>Variance</strong> = sensitivity to training data — noise copy karta hai, naye data pe fail!<br>
+    → <strong>Tradeoff</strong> = Bias² + Variance + Noise — dono simultaneously minimize impossible!<br>
+    → <strong>Underfitting</strong> = both errors high → increase complexity<br>
+    → <strong>Overfitting</strong> = train low, test high → regularize, more data<br>
+    → <strong>Sweet Spot</strong> = both errors low, small gap → ye hai asli goal!<br><br>
+    <strong style="color:var(--neon-pink)">Bias-Variance samajh liya toh ML ka sabse important concept clear ho gaya — Sweet Spot Master ban gaye! ⚖️🚀</strong>
+  </div>
+</div>
+
+</div><!-- /container-main -->
+
+<!-- FOOTER -->
+<footer class="gfooter">
+  <div class="container-main">
+    <div class="gfooter-logo"><i class="fa-solid fa-scale-balanced me-2"></i>Bias-Variance &amp; Overfitting/Underfitting Quest</div>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.5rem;">Bias · Variance · Tradeoff · Underfitting · Overfitting · Detection · Python Fixes | Gamified Tutorial</p>
+    <p style="color:var(--dim);font-size:0.82rem;">Made with <i class="fa-solid fa-heart" style="color:var(--neon-pink)"></i> for Hindi-speaking Data Science learners across India 🇮🇳</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MODAL — HTML before scripts -->
+<canvas id="confettiCanvas"></canvas>
+<div class="modal-overlay" id="finalModal">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" id="modalClose" title="Close">✕</button>
+    <div class="modal-trophy" id="modalTrophy">🏆</div>
+    <div class="modal-title" id="modalTitle">Quest Complete!</div>
+    <div class="modal-subtitle" id="modalSubtitle">Tumne saare 5 quizzes complete kar liye!</div>
+    <div class="score-ring-wrap">
+      <div class="score-ring">
+        <svg viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="52"/>
+          <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="ring-text">
+          <div class="ring-num" id="ringNum">0/5</div>
+          <div class="ring-label">Score</div>
+        </div>
+      </div>
+    </div>
+    <div class="grade-card" id="gradeCard">
+      <div class="grade-letter" id="gradeLetter">S</div>
+      <div class="grade-msg" id="gradeMsg">Exceptional!</div>
+    </div>
+    <div class="modal-xp-row">
+      <span class="mxp-label">⚡ Total XP Earned from Quizzes</span>
+      <span class="mxp-val" id="modalXpVal">0 XP</span>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn-retry"    id="modalRetry"><i class="fa-solid fa-rotate-right"></i> Retry All</button>
+      <button class="modal-btn-continue" id="modalContinue"><i class="fa-solid fa-trophy"></i> Awesome, Continue!</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function showFinalModal(){
+  const total=quizTotal,correct=quizCorrect,pct=total>0?correct/total:0,quizXP=correct*25;
+  const grades=[
+    {min:1.0,cls:'grade-s',letter:'S 🌟',msg:'Zabardast! Sab 5/5 correct! Sweet Spot Master ban gaye! ⚖️'},
+    {min:0.8,cls:'grade-a',letter:'A 🎯',msg:'Bahut badhiya! Almost perfect balance!'},
+    {min:0.6,cls:'grade-b',letter:'B 📘',msg:'Accha kiya! Kuch concepts dobara review karo.'},
+    {min:0.4,cls:'grade-c',letter:'C 💪',msg:'Theek hai! Diagrams aur code dobara practice karo.'},
+    {min:0.0,cls:'grade-d',letter:'D 📚',msg:'Aur mehnat karo! Tutorial dobara padho.'},
+  ];
+  const g=grades.find(gr=>pct>=gr.min);
+  document.getElementById('ringNum').textContent=correct+'/'+total;
+  document.getElementById('modalXpVal').textContent=quizXP+' XP';
+  const gc=document.getElementById('gradeCard');gc.className='grade-card '+g.cls;
+  document.getElementById('gradeLetter').textContent=g.letter;
+  document.getElementById('gradeMsg').textContent=g.msg;
+  if(pct===1.0){document.getElementById('modalTrophy').textContent='🏆';document.getElementById('modalTitle').textContent='🎊 Perfect Score!';document.getElementById('modalSubtitle').textContent='Wah! Saare '+total+'/'+total+' sahi! Sweet Spot Master!';}
+  else if(pct>=0.6){document.getElementById('modalTrophy').textContent='🎯';document.getElementById('modalTitle').textContent='Quest Complete!';document.getElementById('modalSubtitle').textContent=correct+' out of '+total+' correct. Kafi accha kiya!';}
+  else{document.getElementById('modalTrophy').textContent='📚';document.getElementById('modalTitle').textContent='Keep Trying!';document.getElementById('modalSubtitle').textContent='Tutorial dobara padho aur retry karo!';}
+  const circumference=327,offset=circumference*(1-pct);
+  const ringColors={'grade-s':'#b45309','grade-a':'#16a34a','grade-b':'#2563eb','grade-c':'#7c3aed','grade-d':'#dc2626'};
+  const ringEl=document.getElementById('ringFill');
+  ringEl.style.stroke=ringColors[g.cls]||'#7c3aed';
+  ringEl.style.transition='none';ringEl.style.strokeDashoffset='327';
+  setTimeout(()=>{ringEl.style.transition='stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)';ringEl.style.strokeDashoffset=offset;},80);
+  document.getElementById('finalModal').classList.add('open');
+  if(pct>=0.6)launchConfetti(pct);
+}
+function launchConfetti(pct){
+  const canvas=document.getElementById('confettiCanvas'),ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const count=Math.floor(80+pct*140);
+  const colors=['#7c3aed','#db2777','#0891b2','#16a34a','#b45309','#2563eb','#f59e0b'];
+  const pieces=Array.from({length:count},()=>({x:Math.random()*canvas.width,y:Math.random()*-canvas.height*0.6,w:Math.random()*10+5,h:Math.random()*6+3,color:colors[Math.floor(Math.random()*colors.length)],vx:(Math.random()-0.5)*4,vy:Math.random()*4+2,rot:Math.random()*360,vrot:(Math.random()-0.5)*9,alpha:1}));
+  let frame=0;
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);let alive=false;
+    pieces.forEach(p=>{if(p.y>canvas.height+20)return;alive=true;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vrot;if(p.y>canvas.height*0.65)p.alpha-=0.02;p.alpha=Math.max(0,p.alpha);ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+    frame++;if(alive&&frame<260)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);
+  })();
+}
+function initQuizzes(){
+  document.querySelectorAll('.quiz-box').forEach(box=>{
+    box.querySelectorAll('.quiz-opt').forEach(opt=>{const n=opt.cloneNode(true);opt.parentNode.replaceChild(n,opt);});
+    const correct=box.dataset.correct,qxp=parseInt(box.dataset.xp)||25;let answered=false;
+    box.querySelectorAll('.quiz-opt').forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        if(answered)return;answered=true;
+        const isCorrect=opt.dataset.ans===correct,fb=box.querySelector('.quiz-feedback');
+        box.querySelectorAll('.quiz-opt').forEach(o=>{o.classList.add('answered-opt');const exDiv=box.querySelector('.quiz-explain[data-for-ans="'+o.dataset.ans+'"]');if(o.dataset.ans===correct){o.classList.add('correct');if(exDiv)exDiv.classList.add('show-correct');}else if(o===opt&&!isCorrect){o.classList.add('wrong');if(exDiv)exDiv.classList.add('show-wrong');}else{o.classList.add('dimmed');}});
+        if(isCorrect){quizCorrect++;fb.className='quiz-feedback show win';fb.innerHTML='<span style="font-size:1.3rem">🎉</span>&nbsp;Zabardast! Sahi jawab! <strong>+'+qxp+' XP</strong> earned!';addXP(qxp);showToast('⚡','+'+qxp+' XP!','Bilkul sahi jawab!','#16a34a');}
+        else{fb.className='quiz-feedback show lose';fb.innerHTML='<span style="font-size:1.3rem">💡</span>&nbsp;Galat! Sahi jawab highlight ho gaya — concept dobara padho!';showToast('💡','Galat!','Sahi jawab dekho aur concept review karo.','#dc2626');}
+        const doneCount=Array.from(document.querySelectorAll('.quiz-box')).filter(b=>b.querySelector('.quiz-opt.answered-opt')).length;
+        if(doneCount===quizTotal)setTimeout(showFinalModal,1200);
+      });
+    });
+  });
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#ede9fe',primaryTextColor:'#4c1d95',primaryBorderColor:'#7c3aed',lineColor:'#94a3b8',secondaryColor:'#fce7f3',tertiaryColor:'#dcfce7',fontFamily:'Plus Jakarta Sans, sans-serif',fontSize:'13px'},flowchart:{curve:'basis',padding:24}});
+
+let xp=0,scrollXpEarned=0;
+const XP_MAX=275;  // 5×30 scroll + 5×25 quiz = 275
+const earnedBadges=new Set();
+
+function addXP(amount,badgeId){
+  if(badgeId)scrollXpEarned=Math.min(scrollXpEarned+amount,150);
+  xp=Math.min(xp+amount,XP_MAX);
+  document.getElementById('xpFill').style.width=(xp/XP_MAX*100)+'%';
+  document.getElementById('xpScore').textContent=xp+' / '+XP_MAX+' XP';
+  if(badgeId&&!earnedBadges.has(badgeId)){earnedBadges.add(badgeId);const el=document.getElementById(badgeId);if(el)el.classList.add('earned');}
+  if(xp>=XP_MAX)showToast('🏆','QUEST COMPLETE! 🎊','Sweet Spot Master! 275/275 XP!','#b45309');
+}
+function showToast(icon,title,msg,color){
+  const container=document.getElementById('toastContainer');
+  const t=document.createElement('div');t.className='gtoast';
+  t.innerHTML=`<span class="gtoast-icon">${icon}</span><div><div style="font-weight:800;color:${color};font-size:0.9rem;">${title}</div><div style="color:#6b7280;font-size:0.8rem;font-weight:400;">${msg}</div></div>`;
+  container.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
+}
+
+let quizTotal=0,quizCorrect=0;
+document.querySelectorAll('.quiz-box').forEach(box=>{
+  quizTotal++;
+  const correct=box.dataset.correct,qxp=parseInt(box.dataset.xp)||25;let answered=false;
+  box.querySelectorAll('.quiz-opt').forEach(opt=>{
+    const explain=opt.dataset.explain||'';
+    if(explain){const div=document.createElement('div');div.className='quiz-explain';div.dataset.forAns=opt.dataset.ans;div.textContent=explain;opt.parentNode.insertBefore(div,opt.nextSibling);}
+  });
+  box.querySelectorAll('.quiz-opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      if(answered)return;answered=true;
+      const ans=opt.dataset.ans,fb=box.querySelector('.quiz-feedback'),isCorrect=ans===correct;
+      box.querySelectorAll('.quiz-opt').forEach(o=>{
+        o.classList.add('answered-opt');
+        const explainDiv=box.querySelector('.quiz-explain[data-for-ans="'+o.dataset.ans+'"]');
+        if(o.dataset.ans===correct){o.classList.add('correct');if(explainDiv)explainDiv.classList.add('show-correct');}
+        else if(o===opt&&!isCorrect){o.classList.add('wrong');if(explainDiv)explainDiv.classList.add('show-wrong');}
+        else{o.classList.add('dimmed');if(o.dataset.ans===correct&&explainDiv)explainDiv.classList.add('show-reveal');}
+      });
+      if(isCorrect){quizCorrect++;fb.className='quiz-feedback show win';fb.innerHTML='<span style="font-size:1.3rem">🎉</span> Zabardast! Sahi jawab! <strong>+'+qxp+' XP</strong> earned!';addXP(qxp);showToast('⚡','+'+qxp+' XP!','Bilkul sahi jawab!','#16a34a');}
+      else{fb.className='quiz-feedback show lose';fb.innerHTML='<span style="font-size:1.3rem">💡</span> Galat! Sahi jawab highlight ho gaya — concept dobara padho!';showToast('💡','Galat!','Sahi jawab dekho aur concept review karo.','#dc2626');}
+      const doneCount=Array.from(document.querySelectorAll('.quiz-box')).filter(b=>b.querySelector('.quiz-opt.answered-opt')).length;
+      if(doneCount===quizTotal)setTimeout(showFinalModal,1200);
+    });
+  });
+});
+
+const fadeObserver=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');fadeObserver.unobserve(e.target);}});},{threshold:0.12});
+document.querySelectorAll('.fade-up').forEach(el=>fadeObserver.observe(el));
+
+const sectionXP={
+  's1':{xp:30,badge:'badge1',msg:'🎯 Bias Buster badge unlocked!'},
+  's3':{xp:30,badge:'badge2',msg:'🌊 Variance Tamer badge unlocked!'},
+  's5':{xp:30,badge:'badge3',msg:'📉 Underfit Detector badge unlocked!'},
+  's7':{xp:30,badge:'badge4',msg:'📈 Overfit Slayer badge unlocked!'},
+  's9':{xp:30,badge:'badge5',msg:'🏆 Sweet Spot Master badge unlocked!'},
+};
+const xpObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      if(sectionXP[id]&&!earnedBadges.has(sectionXP[id].badge)){const{xp:sx,badge,msg}=sectionXP[id];addXP(sx,badge);showToast('🏅','Badge Unlocked!',msg,'#7c3aed');}
+      xpObserver.unobserve(e.target);
+    }
+  });
+},{threshold:0.12});
+['s1','s3','s5','s7','s9'].forEach(id=>{const el=document.getElementById(id);if(el)xpObserver.observe(el);});
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});});
+
+function closeModal(){document.getElementById('finalModal').classList.remove('open');}
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('modalContinue').addEventListener('click',closeModal);
+document.getElementById('modalRetry').addEventListener('click',()=>{
+  closeModal();quizCorrect=0;xp=scrollXpEarned;
+  document.getElementById('xpFill').style.width=(xp/XP_MAX*100)+'%';
+  document.getElementById('xpScore').textContent=xp+' / '+XP_MAX+' XP';
+  document.querySelectorAll('.quiz-box').forEach(box=>{
+    box.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('correct','wrong','dimmed','answered-opt'));
+    box.querySelectorAll('.quiz-explain').forEach(ex=>ex.classList.remove('show-correct','show-wrong','show-reveal'));
+    const fb=box.querySelector('.quiz-feedback');if(fb){fb.className='quiz-feedback';fb.innerHTML='';}
+  });
+  initQuizzes();window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('finalModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>

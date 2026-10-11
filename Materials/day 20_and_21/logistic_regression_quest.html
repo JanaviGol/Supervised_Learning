@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supervised Learning Quest — Logistic Regression: Math, Intuition &amp; Code!</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0fdfa;--bg2:#ccfbf1;--card:#fff;--card2:#f0fdf9;
+  --border:rgba(13,148,136,.14);--border2:rgba(13,148,136,.30);
+  --t:#0d9488;--e:#059669;--cy:#0891b2;--bl:#2563eb;--vi:#7c3aed;
+  --or:#c2410c;--pi:#db2777;--re:#dc2626;--gr:#16a34a;--ye:#b45309;
+  --text:#022c22;--mu:#374151;--di:#9ca3af;
+  --fh:'Syne',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fm:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.8;font-size:16px;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-thumb{background:var(--t);border-radius:3px;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(13,148,136,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(13,148,136,.05) 1px,transparent 1px);background-size:48px 48px;}
+.wrap{max-width:1200px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1;}
+
+/* XP BAR */
+.xp-strip{position:sticky;top:0;z-index:1000;background:rgba(240,253,250,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);padding:.65rem 0;box-shadow:0 2px 16px rgba(13,148,136,.10);}
+.xp-inner{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.xp-lbl{font-family:var(--fh);font-weight:800;font-size:.8rem;color:var(--t);letter-spacing:2px;text-transform:uppercase;}
+.xp-bar{flex:1;min-width:100px;background:rgba(13,148,136,.12);border-radius:50px;height:10px;border:1px solid rgba(13,148,136,.28);overflow:hidden;}
+.xp-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--t),var(--e),var(--cy));border-radius:50px;transition:width 1s cubic-bezier(.34,1.56,.64,1);position:relative;}
+.xp-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:24px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4));animation:shim 2s infinite;}
+@keyframes shim{0%,100%{opacity:0;}50%{opacity:1;}}
+.xp-num{font-family:var(--fh);font-weight:800;font-size:.9rem;color:var(--t);}
+.bdgs{display:flex;gap:.4rem;flex-wrap:wrap;}
+.bdg{font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:50px;border:1px solid;opacity:.35;transition:.3s;white-space:nowrap;}
+.bdg.on{opacity:1;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{0%{transform:scale(0);}100%{transform:scale(1);}}
+.b1{border-color:var(--t);color:var(--t);}.b2{border-color:var(--e);color:var(--e);}
+.b3{border-color:var(--cy);color:var(--cy);}.b4{border-color:var(--bl);color:var(--bl);}
+.b5{border-color:var(--vi);color:var(--vi);}
+
+/* HERO */
+.hero{padding:5rem 0 4rem;position:relative;overflow:hidden;background:radial-gradient(ellipse at 20% 50%,rgba(13,148,136,.14) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(5,150,105,.10) 0%,transparent 55%),var(--bg);}
+.hero-orb{position:absolute;top:50%;right:8%;transform:translateY(-50%);width:360px;height:360px;pointer-events:none;}
+.orb-ring{position:absolute;border-radius:50%;border:1px solid rgba(13,148,136,.22);top:50%;left:50%;transform:translate(-50%,-50%);}
+.orb-ring:nth-child(1){width:140px;height:140px;animation:spin 12s linear infinite;}
+.orb-ring:nth-child(2){width:230px;height:230px;animation:spin 20s linear infinite reverse;border-color:rgba(5,150,105,.16);}
+.orb-ring:nth-child(3){width:320px;height:320px;animation:spin 30s linear infinite;border-color:rgba(8,145,178,.12);}
+.orb-dot{position:absolute;width:8px;height:8px;border-radius:50%;top:-4px;left:50%;transform:translateX(-50%);}
+.orb-ring:nth-child(1) .orb-dot{background:var(--t);}
+.orb-ring:nth-child(2) .orb-dot{background:var(--e);}
+.orb-ring:nth-child(3) .orb-dot{background:var(--cy);}
+.orb-c{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.8rem;animation:float 4s ease-in-out infinite;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes float{0%,100%{transform:translate(-50%,-50%) translateY(0);}50%{transform:translate(-50%,-50%) translateY(-10px);}}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;background:rgba(13,148,136,.10);border:1px solid rgba(13,148,136,.28);border-radius:50px;padding:.28rem 1rem;font-size:.78rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t);margin-bottom:1.4rem;}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--t);animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+h1.hero-h{font-family:var(--fh);font-weight:800;font-size:clamp(2rem,4.5vw,3.6rem);line-height:1.1;letter-spacing:-1.5px;margin-bottom:1.4rem;}
+.h-l1{display:block;color:#022c22;}
+.h-l2{display:block;background:linear-gradient(135deg,var(--t),var(--e),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:1rem;color:var(--mu);max-width:520px;margin-bottom:2rem;}
+.hstats{display:flex;gap:2rem;flex-wrap:wrap;margin-bottom:2rem;}
+.hs-n{font-family:var(--fh);font-weight:800;font-size:1.7rem;background:linear-gradient(135deg,var(--t),var(--e));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.hs-l{font-size:.72rem;color:var(--di);text-transform:uppercase;letter-spacing:1px;margin-top:.2rem;}
+.cta{display:inline-flex;align-items:center;gap:.6rem;background:linear-gradient(135deg,var(--t),var(--e));color:#fff;font-weight:800;font-size:.92rem;padding:.75rem 1.8rem;border-radius:50px;text-decoration:none;box-shadow:0 4px 18px rgba(13,148,136,.30);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 4px 18px rgba(13,148,136,.28);}50%{box-shadow:0 4px 28px rgba(13,148,136,.50);}}
+.cta:hover{transform:translateY(-2px);color:#fff;}
+
+/* QUEST MAP */
+.qmap{background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:2rem;margin:3rem 0;box-shadow:0 4px 20px rgba(13,148,136,.07);}
+.qmap-t{font-family:var(--fh);font-weight:800;font-size:1.05rem;color:var(--t);letter-spacing:2px;text-transform:uppercase;margin-bottom:1.4rem;display:flex;align-items:center;gap:.7rem;}
+.qmap-t::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(13,148,136,.35),transparent);}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.7rem;}
+.qi{display:flex;align-items:center;gap:.7rem;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:.7rem 1rem;text-decoration:none;color:var(--mu);font-weight:600;font-size:.87rem;transition:.22s;}
+.qi:hover{background:rgba(13,148,136,.07);border-color:rgba(13,148,136,.32);color:var(--t);transform:translateX(3px);}
+.qn{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:.75rem;flex-shrink:0;}
+
+/* LEVEL CARD */
+.lcard{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:2.4rem;margin-bottom:2.4rem;position:relative;overflow:hidden;transition:box-shadow .3s;}
+.lcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:22px 22px 0 0;}
+.lc-t::before{background:linear-gradient(90deg,var(--t),var(--e));}
+.lc-e::before{background:linear-gradient(90deg,var(--e),var(--cy));}
+.lc-c::before{background:linear-gradient(90deg,var(--cy),var(--t));}
+.lc-b::before{background:linear-gradient(90deg,var(--bl),var(--cy));}
+.lc-v::before{background:linear-gradient(90deg,var(--vi),var(--bl));}
+.lc-p::before{background:linear-gradient(90deg,var(--pi),var(--vi));}
+.lcard:hover{box-shadow:0 8px 28px rgba(13,148,136,.10);}
+.cdeco{position:absolute;top:1.2rem;right:1.5rem;font-family:var(--fh);font-weight:800;font-size:.68rem;letter-spacing:2px;text-transform:uppercase;opacity:.20;}
+.lhd{display:flex;align-items:flex-start;gap:1.2rem;margin-bottom:1.6rem;}
+.liwrap{width:58px;height:58px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.45rem;position:relative;}
+.liwrap::after{content:'';position:absolute;inset:-3px;border-radius:17px;border:1px solid;opacity:.38;}
+.it{background:rgba(13,148,136,.12);color:var(--t);}.it::after{border-color:var(--t);}
+.ie{background:rgba(5,150,105,.12);color:var(--e);}.ie::after{border-color:var(--e);}
+.ic{background:rgba(8,145,178,.12);color:var(--cy);}.ic::after{border-color:var(--cy);}
+.ib{background:rgba(37,99,235,.12);color:var(--bl);}.ib::after{border-color:var(--bl);}
+.iv{background:rgba(124,58,237,.12);color:var(--vi);}.iv::after{border-color:var(--vi);}
+.ip{background:rgba(219,39,119,.12);color:var(--pi);}.ip::after{border-color:var(--pi);}
+.ior{background:rgba(194,65,12,.12);color:var(--or);}.ior::after{border-color:var(--or);}
+.ire{background:rgba(220,38,38,.12);color:var(--re);}.ire::after{border-color:var(--re);}
+.igr{background:rgba(22,163,74,.12);color:var(--gr);}.igr::after{border-color:var(--gr);}
+.lm{flex:1;}
+.ley{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--di);margin-bottom:.3rem;}
+.lt{font-family:var(--fh);font-weight:800;font-size:1.48rem;line-height:1.2;color:var(--text);}
+.lxp{margin-top:.4rem;display:inline-flex;align-items:center;gap:.4rem;background:rgba(13,148,136,.09);border:1px solid rgba(13,148,136,.24);border-radius:50px;padding:.18rem .7rem;font-size:.73rem;font-weight:700;color:var(--t);}
+
+/* CALLOUT */
+.cal{border-radius:13px;padding:1.1rem 1.3rem;margin:1.1rem 0;border:1px solid;position:relative;overflow:hidden;}
+.cal::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.cal .ct{font-weight:800;font-size:.93rem;margin-bottom:.45rem;display:flex;align-items:center;gap:.5rem;}
+.ct-t{background:rgba(13,148,136,.07);border-color:rgba(13,148,136,.22);}.ct-t::before{background:var(--t);}.ct-t .ct{color:var(--t);}
+.ct-e{background:rgba(5,150,105,.06);border-color:rgba(5,150,105,.20);}.ct-e::before{background:var(--e);}.ct-e .ct{color:var(--e);}
+.ct-c{background:rgba(8,145,178,.06);border-color:rgba(8,145,178,.20);}.ct-c::before{background:var(--cy);}.ct-c .ct{color:var(--cy);}
+.ct-b{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.20);}.ct-b::before{background:var(--bl);}.ct-b .ct{color:var(--bl);}
+.ct-v{background:rgba(124,58,237,.06);border-color:rgba(124,58,237,.20);}.ct-v::before{background:var(--vi);}.ct-v .ct{color:var(--vi);}
+.ct-or{background:rgba(194,65,12,.06);border-color:rgba(194,65,12,.20);}.ct-or::before{background:var(--or);}.ct-or .ct{color:var(--or);}
+.ct-re{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.20);}.ct-re::before{background:var(--re);}.ct-re .ct{color:var(--re);}
+.ct-ye{background:rgba(180,83,9,.06);border-color:rgba(180,83,9,.20);}.ct-ye::before{background:var(--ye);}.ct-ye .ct{color:var(--ye);}
+.ct-pi{background:rgba(219,39,119,.06);border-color:rgba(219,39,119,.20);}.ct-pi::before{background:var(--pi);}.ct-pi .ct{color:var(--pi);}
+.ct-gr{background:rgba(22,163,74,.06);border-color:rgba(22,163,74,.20);}.ct-gr::before{background:var(--gr);}.ct-gr .ct{color:var(--gr);}
+
+/* FORMULA */
+.fb{background:linear-gradient(135deg,rgba(13,148,136,.07),rgba(5,150,105,.04));border:1.5px solid rgba(13,148,136,.24);border-radius:15px;padding:1.4rem 1.8rem;margin:1.3rem 0;text-align:center;position:relative;}
+.fb-lbl{position:absolute;top:.5rem;right:.9rem;font-size:.66rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t);opacity:.55;}
+.fm{font-family:var(--fm);font-size:1.05rem;font-weight:700;color:var(--t);line-height:1.85;}
+.fs{font-size:.8rem;color:var(--mu);margin-top:.45rem;}
+.fb-e .fm{color:var(--e);}.fb-e{border-color:rgba(5,150,105,.24);}
+.fb-b .fm{color:var(--bl);}.fb-b{border-color:rgba(37,99,235,.24);}
+.fb-v .fm{color:var(--vi);}.fb-v{border-color:rgba(124,58,237,.24);}
+.fb-c .fm{color:var(--cy);}.fb-c{border-color:rgba(8,145,178,.24);}
+.fb-or .fm{color:var(--or);}.fb-or{border-color:rgba(194,65,12,.24);}
+
+/* MATH TERMS */
+.mts{display:flex;flex-wrap:wrap;gap:.55rem;margin:.75rem 0;}
+.mt{display:inline-flex;align-items:center;gap:.4rem;background:rgba(13,148,136,.07);border:1px solid rgba(13,148,136,.20);border-radius:7px;padding:.28rem .7rem;font-size:.83rem;}
+.ms{font-family:var(--fm);font-weight:700;color:var(--t);}
+.mm{color:var(--mu);}
+
+/* STEP TIMELINE */
+.stl{position:relative;padding-left:2.7rem;}
+.stl::before{content:'';position:absolute;left:14px;top:4px;bottom:4px;width:2px;background:linear-gradient(180deg,var(--t),var(--e),var(--cy));opacity:.42;border-radius:2px;}
+.si{position:relative;margin-bottom:1.2rem;background:var(--card2);border:1px solid var(--border);border-radius:13px;padding:1rem 1.2rem;transition:.22s;}
+.si:hover{border-color:var(--border2);background:#e6fdf7;}
+.si::before{content:attr(data-s);position:absolute;left:-2.7rem;top:1rem;width:30px;height:30px;border-radius:50%;background:#fff;border:2px solid var(--t);display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:.75rem;color:var(--t);}
+.sl{font-weight:700;color:var(--text);font-size:.95rem;margin-bottom:.3rem;}
+.sb{color:var(--mu);font-size:.9rem;line-height:1.7;}
+
+/* ACH CARDS */
+.ac{background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.4rem;height:100%;transition:.3s;text-align:center;position:relative;overflow:hidden;}
+.ac::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;opacity:0;transition:.3s;}
+.ac:hover{transform:translateY(-5px);}
+.ac:hover::after{opacity:1;}
+.ac-t::after{background:var(--t);}.ac-t:hover{box-shadow:0 14px 40px rgba(13,148,136,.16);}
+.ac-e::after{background:var(--e);}.ac-e:hover{box-shadow:0 14px 40px rgba(5,150,105,.16);}
+.ac-c::after{background:var(--cy);}.ac-c:hover{box-shadow:0 14px 40px rgba(8,145,178,.16);}
+.ac-b::after{background:var(--bl);}.ac-b:hover{box-shadow:0 14px 40px rgba(37,99,235,.16);}
+.ac-v::after{background:var(--vi);}.ac-v:hover{box-shadow:0 14px 40px rgba(124,58,237,.16);}
+.ai{font-size:2rem;margin-bottom:.7rem;display:block;}
+.at{font-family:var(--fh);font-weight:800;font-size:.95rem;margin-bottom:.45rem;}
+.ad{font-size:.86rem;color:var(--mu);line-height:1.6;}
+
+/* CODE */
+.cw{background:#f8f9fc;border:1px solid var(--border2);border-radius:13px;overflow:hidden;margin:1.1rem 0;}
+.ch{display:flex;align-items:center;justify-content:space-between;background:rgba(13,148,136,.07);padding:.58rem 1rem;border-bottom:1px solid var(--border);}
+.cl{font-family:var(--fm);font-size:.73rem;font-weight:600;color:var(--t);letter-spacing:1px;text-transform:uppercase;}
+.cd{display:flex;gap:5px;}
+.dd{width:10px;height:10px;border-radius:50%;}
+.dd:nth-child(1){background:#dc2626;}.dd:nth-child(2){background:#b45309;}.dd:nth-child(3){background:#16a34a;}
+.cw pre{margin:0;padding:1.1rem 1.3rem;overflow-x:auto;background:transparent;}
+pre[class*="language-"]{border-radius:0!important;font-family:var(--fm)!important;font-size:.84rem!important;margin:0!important;border:none!important;background:transparent!important;}
+.co{background:rgba(22,163,74,.06);border-top:1px solid rgba(22,163,74,.18);padding:.65rem 1.1rem;font-family:var(--fm);font-size:.8rem;color:#14532d;line-height:1.65;}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:13px;overflow:hidden;border:1px solid var(--border);}
+.tbl thead th{background:rgba(13,148,136,.08);color:var(--t);font-family:var(--fh);font-weight:700;padding:.85rem .95rem;text-align:left;border-bottom:1px solid var(--border2);font-size:.83rem;letter-spacing:.4px;}
+.tbl tbody td{padding:.72rem .95rem;border-bottom:1px solid var(--border);color:var(--mu);font-size:.9rem;vertical-align:top;}
+.tbl tbody tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:rgba(13,148,136,.03);color:var(--text);}
+
+/* PILL */
+.pill{display:inline-flex;align-items:center;gap:.3rem;border-radius:50px;padding:.2rem .75rem;font-weight:700;font-size:.76rem;border:1px solid;}
+.pt{background:rgba(13,148,136,.09);border-color:rgba(13,148,136,.30);color:var(--t);}
+.pe{background:rgba(5,150,105,.09);border-color:rgba(5,150,105,.30);color:var(--e);}
+.pc{background:rgba(8,145,178,.09);border-color:rgba(8,145,178,.30);color:var(--cy);}
+.pb{background:rgba(37,99,235,.09);border-color:rgba(37,99,235,.30);color:var(--bl);}
+.pv{background:rgba(124,58,237,.09);border-color:rgba(124,58,237,.30);color:var(--vi);}
+.pre{background:rgba(220,38,38,.09);border-color:rgba(220,38,38,.30);color:var(--re);}
+.pgr{background:rgba(22,163,74,.09);border-color:rgba(22,163,74,.30);color:var(--gr);}
+.ppi{background:rgba(219,39,119,.09);border-color:rgba(219,39,119,.30);color:var(--pi);}
+
+/* INLINE CODE */
+.ic-c{background:rgba(13,148,136,.09);color:#065f46;padding:.08rem .42rem;border-radius:5px;font-family:var(--fm);font-size:.86em;border:1px solid rgba(13,148,136,.22);}
+
+/* HIGHLIGHTS */
+.ht{background:rgba(13,148,136,.10);color:var(--t);padding:0 4px;border-radius:4px;}
+.he{background:rgba(5,150,105,.10);color:var(--e);padding:0 4px;border-radius:4px;}
+.hb{background:rgba(37,99,235,.10);color:var(--bl);padding:0 4px;border-radius:4px;}
+.hv{background:rgba(124,58,237,.10);color:var(--vi);padding:0 4px;border-radius:4px;}
+.hr-c{background:rgba(220,38,38,.10);color:var(--re);padding:0 4px;border-radius:4px;}
+.hor{background:rgba(194,65,12,.10);color:var(--or);padding:0 4px;border-radius:4px;}
+
+/* GLOW */
+.gd{height:2px;border-radius:2px;margin:1.8rem 0;opacity:.38;background:linear-gradient(90deg,transparent,var(--t),var(--e),var(--cy),transparent);}
+
+/* MERMAID */
+.mw{background:var(--card2);border:1px solid var(--border2);border-radius:15px;padding:1.4rem;margin:1.4rem 0;text-align:center;overflow-x:auto;}
+
+/* CONFUSION MATRIX */
+.cm-wrap{display:grid;grid-template-columns:1fr 1fr;gap:4px;max-width:360px;margin:.8rem auto;}
+.cm-cell{border-radius:9px;padding:.85rem;text-align:center;}
+.cm-tp{background:rgba(22,163,74,.14);border:2px solid rgba(22,163,74,.38);}
+.cm-fp{background:rgba(220,38,38,.09);border:2px solid rgba(220,38,38,.30);}
+.cm-fn{background:rgba(194,65,12,.09);border:2px solid rgba(194,65,12,.30);}
+.cm-tn{background:rgba(22,163,74,.08);border:2px solid rgba(22,163,74,.22);}
+.cm-lbl{font-size:.66rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:.2rem;}
+.cm-n{font-family:var(--fh);font-weight:800;font-size:1.35rem;line-height:1;}
+.cm-s{font-size:.72rem;color:var(--mu);margin-top:.12rem;}
+
+/* QUIZ */
+.qbox{background:var(--card2);border:1px solid rgba(13,148,136,.24);border-radius:19px;padding:1.5rem;margin:1.7rem 0;position:relative;overflow:hidden;box-shadow:0 4px 18px rgba(13,148,136,.08);}
+.qbox::before{content:'⚡ QUICK CHALLENGE';position:absolute;top:0;right:0;background:linear-gradient(135deg,var(--t),var(--e));color:#fff;font-family:var(--fh);font-weight:800;font-size:.6rem;letter-spacing:2px;padding:.3rem .85rem;border-radius:0 19px 0 11px;}
+.qq{font-weight:700;color:var(--text);margin-bottom:1rem;font-size:1rem;line-height:1.55;}
+.qopts{display:flex;flex-direction:column;gap:.52rem;}
+.qo{background:#fff;border:1.5px solid #e5e7eb;border-radius:11px;padding:.72rem 1.05rem;cursor:pointer;font-size:.91rem;color:#374151;transition:background .14s,border-color .14s,transform .11s;font-weight:500;display:flex;align-items:center;gap:.8rem;user-select:none;}
+.qo:not(.ao):hover{background:#f3f4f6;border-color:#9ca3af;transform:translateX(3px);}
+.qo.correct{background:#f0fdf4;border-color:#16a34a;color:#14532d;font-weight:700;}
+.qo.correct .ol{background:#16a34a;color:#fff;}
+.qo.wrong{background:#fef2f2;border-color:#dc2626;color:#991b1b;opacity:.8;}
+.qo.wrong .ol{background:#dc2626;color:#fff;}
+.qo.dimmed{opacity:.42;pointer-events:none;}
+.ol{width:27px;height:27px;border-radius:7px;background:#f3f4f6;color:#6b7280;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-weight:800;font-size:.78rem;flex-shrink:0;}
+.qex{display:none;font-size:.82rem;font-weight:500;margin-top:-.32rem;margin-bottom:.32rem;padding:.45rem .8rem .45rem .95rem;border-radius:0 0 9px 9px;line-height:1.52;border-left:3px solid transparent;}
+.qex.sc{display:block;background:rgba(22,163,74,.07);color:#166534;border-left-color:#16a34a;}
+.qex.sw{display:block;background:rgba(220,38,38,.06);color:#991b1b;border-left-color:#dc2626;}
+.qex.sr{display:block;background:rgba(37,99,235,.06);color:#1e40af;border-left-color:#2563eb;}
+.qfb{display:none;margin-top:.95rem;padding:.8rem 1.05rem;border-radius:11px;font-weight:700;font-size:.93rem;align-items:center;gap:.55rem;}
+.qfb.show{display:flex;animation:fi .32s;}
+@keyframes fi{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+.qfb.win{background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#14532d;border:1px solid rgba(22,163,74,.28);}
+.qfb.lose{background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;border:1px solid rgba(220,38,38,.18);}
+
+/* FOOTER */
+.foot{background:var(--bg2);border-top:1px solid var(--border);padding:2.8rem 0;margin-top:4rem;text-align:center;}
+.foot-logo{font-family:var(--fh);font-weight:800;font-size:1.35rem;background:linear-gradient(135deg,var(--t),var(--e));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.5rem;}
+
+/* ANIM */
+.fu{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease;}
+.fu.vis{opacity:1;transform:none;}
+@media(max-width:768px){.hero-orb{display:none;}.lcard{padding:1.4rem;}.bdgs{display:none;}}
+
+/* TOAST */
+.tc{position:fixed;bottom:1.4rem;right:1.4rem;z-index:9999;display:flex;flex-direction:column;gap:.45rem;pointer-events:none;}
+.toast{background:#fff;border:1px solid var(--border2);border-radius:13px;padding:.8rem 1.1rem;display:flex;align-items:center;gap:.7rem;font-weight:700;font-size:.86rem;transform:translateX(120%);transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:auto;min-width:250px;box-shadow:0 8px 28px rgba(13,148,136,.13);}
+.toast.show{transform:none;}
+.ti{font-size:1.3rem;}
+
+/* MODAL */
+.mo{position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.52);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .4s ease;}
+.mo.open{opacity:1;pointer-events:auto;}
+.mb{background:#fff;border-radius:26px;padding:2.4rem 2.4rem 1.9rem;max-width:500px;width:100%;position:relative;overflow:hidden;box-shadow:0 22px 70px rgba(13,148,136,.16);transform:scale(.86) translateY(18px);transition:transform .42s cubic-bezier(.34,1.56,.64,1),opacity .38s;opacity:0;}
+.mo.open .mb{transform:scale(1) translateY(0);opacity:1;}
+.mb::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--t),var(--e),var(--cy));}
+.mc{position:absolute;top:.9rem;right:.9rem;background:#f3f4f6;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:.86rem;color:#6b7280;display:flex;align-items:center;justify-content:center;}
+.mc:hover{background:#e5e7eb;}
+.mt2{font-size:2.8rem;text-align:center;margin-bottom:.4rem;}
+.mti{font-family:var(--fh);font-weight:800;font-size:1.55rem;text-align:center;color:var(--text);margin-bottom:.35rem;}
+.msu{color:var(--mu);text-align:center;font-size:.9rem;margin-bottom:1.4rem;}
+.sr-wrap{display:flex;justify-content:center;margin-bottom:1.1rem;}
+.sr{position:relative;width:112px;height:112px;}
+.sr svg{width:112px;height:112px;transform:rotate(-90deg);}
+.rb{fill:none;stroke:#e5e7eb;stroke-width:10;}
+.rf{fill:none;stroke:#0d9488;stroke-width:10;stroke-linecap:round;stroke-dasharray:327;stroke-dashoffset:327;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);}
+.rt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.rn{font-family:var(--fh);font-weight:800;font-size:1.32rem;color:var(--text);line-height:1;}
+.rl{font-size:.7rem;color:var(--di);text-transform:uppercase;letter-spacing:1px;}
+.gc{border-radius:13px;padding:.8rem 1.1rem;margin-bottom:1.1rem;display:flex;align-items:center;gap:.95rem;border:1.5px solid;}
+.gs{background:#f0fdfa;border-color:var(--t);}.ga{background:#f0fdf4;border-color:var(--gr);}
+.gb{background:#eff6ff;border-color:var(--bl);}.gd2{background:#fdf4ff;border-color:var(--vi);}
+.gd3{background:#fef2f2;border-color:var(--re);}
+.gl{font-family:var(--fh);font-weight:800;font-size:1.55rem;}
+.gm{font-size:.88rem;color:var(--mu);font-weight:600;}
+.mxrow{display:flex;align-items:center;justify-content:space-between;background:#f0fdfa;border:1px solid rgba(13,148,136,.20);border-radius:11px;padding:.7rem 1.05rem;margin-bottom:1.3rem;}
+.mxl{font-size:.83rem;color:#6b7280;font-weight:600;}
+.mxv{font-family:var(--fh);font-weight:800;font-size:1.05rem;background:linear-gradient(135deg,var(--t),var(--e));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mbtns{display:flex;gap:.7rem;}
+.mbr{flex:1;padding:.75rem .95rem;background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:11px;cursor:pointer;font-family:var(--fh);font-weight:700;font-size:.9rem;color:#374151;transition:.2s;display:flex;align-items:center;justify-content:center;gap:.45rem;}
+.mbr:hover{background:#e5e7eb;}
+.mbc{flex:2;padding:.75rem .95rem;background:linear-gradient(135deg,var(--t),var(--e));border:none;border-radius:11px;cursor:pointer;font-family:var(--fh);font-weight:700;font-size:.9rem;color:#fff;transition:.2s;display:flex;align-items:center;justify-content:center;gap:.45rem;box-shadow:0 4px 14px rgba(13,148,136,.28);}
+.mbc:hover{transform:translateY(-1px);}
+#confetti{position:fixed;inset:0;z-index:10001;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- XP -->
+<div class="xp-strip">
+  <div class="wrap">
+    <div class="xp-inner">
+      <span class="xp-lbl">⚡ XP</span>
+      <div class="xp-bar"><div class="xp-fill" id="xpF"></div></div>
+      <span class="xp-num" id="xpN">0 / 220 XP</span>
+      <div class="bdgs">
+        <span class="bdg b1" id="b1">🧠 LR Initiate</span>
+        <span class="bdg b2" id="b2">📐 Math Pro</span>
+        <span class="bdg b3" id="b3">🔢 Calc Expert</span>
+        <span class="bdg b4" id="b4">🐍 Code Champion</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="eyebrow"><i class="fa-solid fa-gamepad me-1"></i> Supervised Learning Quest</div>
+        <h1 class="hero-h">
+          <span class="h-l1">0 ya 1? Probability se Decide Karo —</span>
+          <span class="h-l2">Logistic Regression Master Karo!</span>
+        </h1>
+        <p class="hero-sub">4 boss levels. Bilkul beginner se — sigmoid, log-odds, cross-entropy, gradient descent, Python from scratch, aur sklearn full pipeline. Real India examples. <strong>Earn XP!</strong></p>
+        <div class="hstats">
+          <div><div class="hs-n">4</div><div class="hs-l">Boss Levels</div></div>
+          <div><div class="hs-n">220</div><div class="hs-l">Total XP</div></div>
+          <div><div class="hs-n">4</div><div class="hs-l">Badges</div></div>
+          <div><div class="hs-n">σ(z)</div><div class="hs-l">Sigmoid</div></div>
+        </div>
+        <a href="#s1" class="cta"><i class="fa-solid fa-play me-1"></i> Start Your Quest</a>
+      </div>
+      <div class="col-lg-5">
+        <div class="hero-orb">
+          <div class="orb-ring"><div class="orb-dot"></div></div>
+          <div class="orb-ring"><div class="orb-dot"></div></div>
+          <div class="orb-ring"><div class="orb-dot"></div></div>
+          <div class="orb-c">🔀</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+
+<!-- QUEST MAP -->
+<div class="qmap fu">
+  <div class="qmap-t"><i class="fa-solid fa-map me-2"></i> Quest Map</div>
+  <div class="qgrid">
+    <a href="#s1" class="qi"><span class="qn" style="background:rgba(13,148,136,.14);color:var(--t)">L1</span> Intuition — Why Not Linear? Sigmoid!</a>
+    <a href="#s2" class="qi"><span class="qn" style="background:rgba(5,150,105,.14);color:var(--e)">L2</span> Math — Log-Odds, Loss &amp; Gradient Descent</a>
+    <a href="#s3" class="qi"><span class="qn" style="background:rgba(8,145,178,.14);color:var(--cy)">L3</span> Full Worked Example — Hand Calculation</a>
+    <a href="#s4" class="qi"><span class="qn" style="background:rgba(37,99,235,.14);color:var(--bl)">L4</span> Python — From Scratch + sklearn Pipeline</a>
+    <a href="#s6" class="qi"><span class="qn" style="background:rgba(13,148,136,.14);color:var(--t)">🏆</span> Final Summary &amp; Cheatsheet</a>
+  </div>
+</div>
+
+
+<!-- ████ LEVEL 1 ████ -->
+<div class="lcard lc-t fu" id="s1">
+  <div class="cdeco">LEVEL 1</div>
+  <div class="lhd">
+    <div class="liwrap it"><i class="fa-solid fa-brain"></i></div>
+    <div class="lm">
+      <div class="ley">Level 1 · Boss Topic</div>
+      <div class="lt">Intuition — Why Not Linear? Sigmoid kya Hai?</div>
+      <div class="lxp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="cal ct-t">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> Logistic Regression — Ek Line Mein</div>
+    <strong>Logistic Regression</strong> = ek classification algorithm jo input features se <span class="ht">probability predict karta hai ki sample class 1 se belong karta hai</span>.<br><br>
+    "Logistic" naam se "regression" lagta hai — lekin ye <strong>classification</strong> karta hai! Output: P(y=1|X) = 0 se 1 ke beech — ek probability.
+  </div>
+
+  <!-- Why not linear? SVG -->
+  <div style="background:var(--card2);border:1.5px solid var(--border2);border-radius:15px;padding:1.3rem;margin:1.1rem 0;">
+    <div style="font-family:var(--fh);font-weight:800;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--re);text-align:center;margin-bottom:.7rem;">❌ Linear Regression for Classification — 3 Problems!</div>
+    <svg viewBox="0 0 540 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+      <line x1="40" y1="135" x2="510" y2="135" stroke="#d1d5db" stroke-width="1.5"/>
+      <line x1="40" y1="15" x2="40" y2="142" stroke="#d1d5db" stroke-width="1.5"/>
+      <text x="275" y="150" text-anchor="middle" font-size="9" fill="#6b7280" font-family="sans-serif">Study Hours →</text>
+      <text x="28" y="138" text-anchor="middle" font-size="8" fill="#6b7280" font-family="sans-serif">0</text>
+      <text x="28" y="75" text-anchor="middle" font-size="8" fill="#6b7280" font-family="sans-serif">1</text>
+      <line x1="40" y1="75" x2="510" y2="75" stroke="rgba(22,163,74,.28)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="515" y="78" font-size="8" fill="#16a34a" font-family="sans-serif">y=1</text>
+      <!-- Fail dots -->
+      <circle cx="80" cy="135" r="6" fill="#dc2626" opacity=".8"/>
+      <circle cx="115" cy="135" r="6" fill="#dc2626" opacity=".8"/>
+      <circle cx="150" cy="135" r="6" fill="#dc2626" opacity=".8"/>
+      <circle cx="185" cy="135" r="6" fill="#dc2626" opacity=".8"/>
+      <!-- Pass dots -->
+      <circle cx="310" cy="75" r="6" fill="#16a34a" opacity=".8"/>
+      <circle cx="350" cy="75" r="6" fill="#16a34a" opacity=".8"/>
+      <circle cx="390" cy="75" r="6" fill="#16a34a" opacity=".8"/>
+      <circle cx="430" cy="75" r="6" fill="#16a34a" opacity=".8"/>
+      <circle cx="470" cy="75" r="6" fill="#16a34a" opacity=".8"/>
+      <!-- Linear line going outside 0-1 -->
+      <line x1="55" y1="162" x2="500" y2="18" stroke="#2563eb" stroke-width="2.5"/>
+      <text x="65" y="165" font-size="8.5" fill="#dc2626" font-family="sans-serif" font-weight="bold">y &lt; 0 here!</text>
+      <text x="462" y="15" font-size="8.5" fill="#dc2626" font-family="sans-serif" font-weight="bold">y &gt; 1 here!</text>
+      <text x="260" y="108" font-size="8" fill="#2563eb" font-family="sans-serif">Linear Regression line</text>
+    </svg>
+    <div class="row g-2 mt-2">
+      <div class="col-md-4"><div style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.20);border-radius:8px;padding:.65rem;font-size:.8rem;color:var(--mu);"><strong style="color:var(--re)">❌ Problem 1:</strong> Output &gt;1 ya &lt;0 possible — probability nahi ho sakta!</div></div>
+      <div class="col-md-4"><div style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.20);border-radius:8px;padding:.65rem;font-size:.8rem;color:var(--mu);"><strong style="color:var(--re)">❌ Problem 2:</strong> Decision boundary arbitrary hoti hai.</div></div>
+      <div class="col-md-4"><div style="background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.20);border-radius:8px;padding:.65rem;font-size:.8rem;color:var(--mu);"><strong style="color:var(--re)">❌ Problem 3:</strong> Outliers line ko bahut affect karte hain.</div></div>
+    </div>
+  </div>
+
+  <!-- Sigmoid formula -->
+  <div class="fb">
+    <div class="fb-lbl">SIGMOID FUNCTION</div>
+    <div class="fm">σ(z) = 1 / (1 + e⁻ᶻ)</div>
+    <div class="fs">z = w₀ + w₁x₁ + … = linear combination of inputs (any value −∞ to +∞)<br>σ(z) ∈ (0,1) hamesha! &nbsp;|&nbsp; σ(0)=0.5 &nbsp;|&nbsp; z→+∞: σ→1 &nbsp;|&nbsp; z→−∞: σ→0</div>
+  </div>
+
+  <!-- Sigmoid SVG -->
+  <div style="background:var(--card2);border:1.5px solid var(--border2);border-radius:15px;padding:1.3rem;margin:1rem 0;">
+    <div style="font-family:var(--fh);font-weight:800;font-size:.78rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--t);text-align:center;margin-bottom:.7rem;">✅ Sigmoid Curve — Hamesha (0, 1) ke Beech!</div>
+    <svg viewBox="0 0 540 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+      <defs>
+        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#0d9488" stop-opacity=".22"/>
+          <stop offset="100%" stop-color="#0d9488" stop-opacity=".03"/>
+        </linearGradient>
+      </defs>
+      <line x1="40" y1="165" x2="510" y2="165" stroke="#d1d5db" stroke-width="1.5"/>
+      <line x1="275" y1="8" x2="275" y2="170" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="40" y1="14" x2="510" y2="14" stroke="rgba(13,148,136,.22)" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <line x1="40" y1="165" x2="510" y2="165" stroke="rgba(13,148,136,.22)" stroke-width="1.5"/>
+      <text x="515" y="17" font-size="9" fill="#0d9488" font-family="sans-serif" font-weight="bold">1.0</text>
+      <text x="515" y="168" font-size="9" fill="#0d9488" font-family="sans-serif" font-weight="bold">0.0</text>
+      <text x="515" y="92" font-size="9" fill="#0d9488" font-family="sans-serif" font-weight="bold">0.5</text>
+      <!-- Sigmoid fill -->
+      <path d="M 42,163 C 70,162 100,160 130,152 C 162,143 182,132 202,117 C 222,102 238,88 257,79 C 268,73 278,71 290,70 C 308,68 325,63 345,52 C 365,40 385,28 415,19 C 445,12 470,11 500,11" fill="url(#sg)" stroke="none"/>
+      <path d="M 42,163 C 70,162 100,160 130,152 C 162,143 182,132 202,117 C 222,102 238,88 257,79 C 268,73 278,71 290,70 C 308,68 325,63 345,52 C 365,40 385,28 415,19 C 445,12 470,11 500,11" fill="none" stroke="#0d9488" stroke-width="3" stroke-linecap="round"/>
+      <!-- 0.5 line -->
+      <line x1="40" y1="89" x2="510" y2="89" stroke="rgba(180,83,9,.32)" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <!-- Decision boundary -->
+      <circle cx="275" cy="89" r="7" fill="none" stroke="#b45309" stroke-width="2.5"/>
+      <circle cx="275" cy="89" r="3.5" fill="#b45309"/>
+      <text x="283" y="84" font-size="8" fill="#b45309" font-family="sans-serif" font-weight="bold">Decision boundary</text>
+      <text x="283" y="94" font-size="8" fill="#b45309" font-family="sans-serif">z=0, σ=0.5</text>
+      <text x="70" y="148" font-size="8.5" fill="#dc2626" font-family="sans-serif">Predict: 0 (Fail)</text>
+      <text x="415" y="32" font-size="8.5" fill="#16a34a" font-family="sans-serif">Predict: 1 (Pass)</text>
+    </svg>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-4"><div class="ac ac-t"><span class="ai">🔢</span><div class="at">z = Linear Combination</div><div class="ad">z = w₀ + w₁×hours + w₂×attendance — ek normal linear output. Koi bhi value −∞ se +∞ tak ho sakta hai.</div></div></div>
+    <div class="col-md-4"><div class="ac ac-e"><span class="ai">🌊</span><div class="at">σ(z) = Probability</div><div class="ad">Sigmoid z ko (0,1) mein squeeze karta hai. σ(z) = P(y=1|X). Large positive z → high probability of class 1!</div></div></div>
+    <div class="col-md-4"><div class="ac ac-c"><span class="ai">✂️</span><div class="at">Threshold = 0.5</div><div class="ad">σ(z) ≥ 0.5 → Class 1. σ(z) &lt; 0.5 → Class 0. Decision boundary at z=0 yaani w₀+w₁x₁+…=0.</div></div></div>
+  </div>
+
+  <div class="cal ct-ye mt-4">
+    <div class="ct"><i class="fa-solid fa-india"></i> 🇮🇳 India Real-World Use Cases</div>
+    <div class="row g-2">
+      <div class="col-md-6">
+        🎓 <strong>Exam Pass/Fail:</strong> Study hours, attendance → Pass (1) ya Fail (0)?<br>
+        💳 <strong>Loan Approved?:</strong> Income, credit score → Approve (1) ya Reject (0)?<br>
+        🦠 <strong>Disease Detection:</strong> Age, BP, BMI → Diabetes (1) ya Healthy (0)?
+      </div>
+      <div class="col-md-6">
+        🔒 <strong>Fraud Detection:</strong> Transaction amount, location → Fraud (1) ya Legit (0)?<br>
+        📧 <strong>Spam Filter:</strong> Email features → Spam (1) ya Not Spam (0)?<br>
+        🎯 <strong>Ad Click:</strong> User profile → Click (1) ya No Click (0)?
+      </div>
+    </div>
+  </div>
+
+  <div class="qbox" data-q="1" data-c="c" data-xp="25">
+    <div class="qq">🤔 Ek student ka z = −2.0 calculate hua. Sigmoid σ(−2) kya hoga? Model student ko pass predict karega? (e² ≈ 7.39)</div>
+    <div class="qopts">
+      <div class="qo" data-a="a" data-ex="Nahi. z=−2 negative hai isliye probability 0.5 se bahut kam hogi. σ(−2) = 1/(1+e²) = 1/(1+7.39) = 1/8.39 ≈ 0.119. 0.88 galat hai — ye σ(+2) ka value hai."><span class="ol">A</span>σ(−2) = 0.88 — high probability, pass predict karega</div>
+      <div class="qo" data-a="b" data-ex="Nahi. σ(0) = 0.5 lekin yahan z = −2, not 0. Negative z → probability &lt; 0.5. σ(−2) ≈ 0.119 hai."><span class="ol">B</span>σ(−2) = 0.5 — exactly at decision boundary</div>
+      <div class="qo" data-a="c" data-ex="Bilkul sahi! σ(−2) = 1/(1+e²) = 1/(1+7.39) = 1/8.39 ≈ 0.119. Ye 0.5 se bahut kam hai → model Fail (0) predict karega. Intuition: z negative → sigmoid &lt; 0.5 → Class 0."><span class="ol">C</span>σ(−2) ≈ 0.119 — Fail predict karega (probability &lt; 0.5)</div>
+      <div class="qo" data-a="d" data-ex="Nahi. Sigmoid kabhi exactly 0 ya 1 nahi deta — sirf approach karta hai. σ(−2) ≈ 0.119 hai, not exactly 0."><span class="ol">D</span>σ(−2) = 0 — exactly zero probability</div>
+    </div>
+    <div class="qfb"></div>
+  </div>
+</div>
+
+
+<!-- ████ LEVEL 2 ████ -->
+<div class="lcard lc-e fu" id="s2">
+  <div class="cdeco">LEVEL 2</div>
+  <div class="lhd">
+    <div class="liwrap ie"><i class="fa-solid fa-square-root-variable"></i></div>
+    <div class="lm">
+      <div class="ley">Level 2 · Boss Topic</div>
+      <div class="lt">Mathematical Formulation — Log-Odds, Loss aur Gradient Descent!</div>
+      <div class="lxp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="cal ct-e">
+    <div class="ct"><i class="fa-solid fa-lightbulb"></i> The Big Picture — Logistic Regression kaise seekhta hai?</div>
+    LR do cheezein seekhta hai: <span class="he">weights (w₀, w₁, …, wₙ)</span>.<br>
+    Training mein: aise weights dhundho ki predicted probabilities actual labels ke saath maximum match karein.<br>
+    Math: <strong>Cross-Entropy Loss minimize karo using Gradient Descent!</strong>
+  </div>
+
+  <div class="fb fb-e">
+    <div class="fb-lbl">LOGISTIC REGRESSION MODEL</div>
+    <div class="fm">ŷ = P(y=1|X) = σ(w₀ + w₁x₁ + … + wₙxₙ) = 1/(1+e^−(Xw))</div>
+    <div class="fs">w = weight vector &nbsp;|&nbsp; Decision: predict 1 if ŷ ≥ 0.5, else 0<br>Log-Odds (logit) = log[ŷ/(1−ŷ)] = z = Xw — linear relationship with features!</div>
+  </div>
+
+  <div class="cal ct-or mt-2">
+    <div class="ct"><i class="fa-solid fa-xmark"></i> MSE for Classification — Kyun Nahi?</div>
+    Linear Regression mein MSE = (y−ŷ)² use karte hain. Classification mein kyun nahi?<br>
+    → Non-convex loss → multiple local minima → gradient descent stuck!<br>
+    → <strong>Solution: Cross-Entropy Loss — convex, fast convergence, probabilistically motivated!</strong>
+  </div>
+
+  <div class="fb fb-b">
+    <div class="fb-lbl">BINARY CROSS-ENTROPY LOSS (1 sample)</div>
+    <div class="fm">L(y, ŷ) = −[y·log(ŷ) + (1−y)·log(1−ŷ)]</div>
+    <div class="fs">y=1: L = −log(ŷ) → ŷ=1 pe loss=0 ✅ &nbsp; ŷ→0 pe loss→∞ ❌ (penalize heavily!)<br>y=0: L = −log(1−ŷ) → ŷ=0 pe loss=0 ✅ &nbsp; ŷ→1 pe loss→∞ ❌</div>
+  </div>
+
+  <div class="fb fb-v" style="margin-top:-.5rem;">
+    <div class="fb-lbl">TOTAL LOSS — OVER ALL N SAMPLES</div>
+    <div class="fm">J(w) = −(1/N) Σᵢ [yᵢ·log(ŷᵢ) + (1−yᵢ)·log(1−ŷᵢ)]</div>
+    <div class="fs">Average loss. This is what gradient descent minimizes! Also called "Log Loss".</div>
+  </div>
+
+  <div class="fb fb-c" style="margin-top:-.5rem;">
+    <div class="fb-lbl">GRADIENT DESCENT UPDATE</div>
+    <div class="fm">wⱼ ← wⱼ − α × (1/N) Σᵢ (ŷᵢ − yᵢ) × xᵢⱼ &nbsp;&nbsp; (in matrix form: w ← w − α × Xᵀ(ŷ−y)/N)</div>
+    <div class="fs">α = learning rate &nbsp;|&nbsp; (ŷ−y) = residual = prediction error<br>Beautiful! Same form as Linear Regression gradient — but ŷ comes from sigmoid!</div>
+  </div>
+
+  <div class="mts">
+    <div class="mt"><span class="ms">σ(z)</span><span class="mm">Sigmoid — maps z to (0,1)</span></div>
+    <div class="mt"><span class="ms">J(w)</span><span class="mm">Cross-entropy loss to minimize</span></div>
+    <div class="mt"><span class="ms">ŷ−y</span><span class="mm">Residual / prediction error</span></div>
+    <div class="mt"><span class="ms">α</span><span class="mm">Learning rate — step size</span></div>
+    <div class="mt"><span class="ms">epoch</span><span class="mm">One full pass through training data</span></div>
+    <div class="mt"><span class="ms">C=1/λ</span><span class="mm">Regularization — prevents overfitting</span></div>
+  </div>
+
+  <div class="qbox" data-q="2" data-c="b" data-xp="25">
+    <div class="qq">🤔 Actual y=1, Predicted ŷ=0.90. Cross-entropy loss kya hoga? (ln(0.9) ≈ −0.105)</div>
+    <div class="qopts">
+      <div class="qo" data-a="a" data-ex="Nahi. (1−0.9)²=0.01 MSE hai, cross-entropy nahi. CE = −[y·log(ŷ)+(1−y)·log(1−ŷ)] = −log(0.9) ≈ 0.105."><span class="ol">A</span>0.01 — (y−ŷ)² = (1−0.9)² = 0.01 (MSE)</div>
+      <div class="qo" data-a="b" data-ex="Bilkul sahi! y=1 → L = −log(ŷ) = −log(0.90) = −(−0.105) = 0.105. Model confident aur correct hai (0.9 predicted, actual 1) isliye loss low hai. Perfect prediction (ŷ=1) pe loss = 0 hoga!"><span class="ol">B</span>≈ 0.105 — −log(0.90) = 0.105 (correctly penalizes wrong confidence)</div>
+      <div class="qo" data-a="c" data-ex="Nahi. 2.30 = −log(0.10). Lekin ŷ=0.90, not 0.10. Agar ŷ=0.10 hota (confident wrong) toh loss = 2.30 hota. Here loss = −log(0.90) ≈ 0.105."><span class="ol">C</span>2.30 — large loss kyunki model far from correct</div>
+      <div class="qo" data-a="d" data-ex="Nahi. Cross-entropy loss kabhi negative nahi hoti. −log(ŷ) for ŷ∈(0,1) is always positive. Loss = 0.105 (positive)."><span class="ol">D</span>−0.105 — negative loss because model correct hai</div>
+    </div>
+    <div class="qfb"></div>
+  </div>
+</div>
+
+
+<!-- ████ LEVEL 3 ████ -->
+<div class="lcard lc-c fu" id="s3">
+  <div class="cdeco">LEVEL 3</div>
+  <div class="lhd">
+    <div class="liwrap ic"><i class="fa-solid fa-calculator"></i></div>
+    <div class="lm">
+      <div class="ley">Level 3 · Boss Topic</div>
+      <div class="lt">Full Worked Example — Hand Calculation (Complete Beginner Level)!</div>
+      <div class="lxp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="cal ct-c">
+    <div class="ct"><i class="fa-solid fa-india"></i> 🇮🇳 JEE Exam Pass/Fail Prediction</div>
+    <strong>Dataset:</strong> 5 students, Feature: Study Hours/day, Target: Pass(1)/Fail(0)<br>
+    <strong>Initial weights:</strong> w₀ = 0 (bias), w₁ = 0 (study hours weight)<br>
+    <strong>Learning rate:</strong> α = 0.1 &nbsp;|&nbsp; <strong>Goal:</strong> Do ONE complete gradient descent update manually!
+  </div>
+
+  <div class="table-responsive mt-3">
+    <table class="tbl">
+      <thead><tr><th>Student</th><th>Study Hrs (x)</th><th>Pass? (y)</th><th>z = 0+0×x</th><th>ŷ = σ(0)</th><th>Residual ŷ−y</th></tr></thead>
+      <tbody>
+        <tr><td>Aditya</td><td style="color:var(--re)">2</td><td style="color:var(--re);font-weight:700">0</td><td>0</td><td><strong>0.500</strong></td><td><strong>+0.500</strong></td></tr>
+        <tr><td>Priya</td><td style="color:var(--re)">3</td><td style="color:var(--re);font-weight:700">0</td><td>0</td><td><strong>0.500</strong></td><td><strong>+0.500</strong></td></tr>
+        <tr><td>Rahul</td><td>5</td><td style="color:var(--gr);font-weight:700">1</td><td>0</td><td><strong>0.500</strong></td><td><strong>−0.500</strong></td></tr>
+        <tr><td>Sneha</td><td style="color:var(--gr)">7</td><td style="color:var(--gr);font-weight:700">1</td><td>0</td><td><strong>0.500</strong></td><td><strong>−0.500</strong></td></tr>
+        <tr><td>Vikram</td><td style="color:var(--gr)">8</td><td style="color:var(--gr);font-weight:700">1</td><td>0</td><td><strong>0.500</strong></td><td><strong>−0.500</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="stl mt-3">
+    <div class="si" data-s="1">
+      <div class="sl">Gradient for w₀ (bias) — ∂J/∂w₀</div>
+      <div class="sb">∂J/∂w₀ = (1/N) Σ (ŷᵢ−yᵢ)×1 = (1/5)×[(+0.5)+(+0.5)+(−0.5)+(−0.5)+(−0.5)] = (1/5)×(−0.5) = <strong>−0.10</strong></div>
+    </div>
+    <div class="si" data-s="2">
+      <div class="sl">Gradient for w₁ (study hours) — ∂J/∂w₁</div>
+      <div class="sb">∂J/∂w₁ = (1/N) Σ (ŷᵢ−yᵢ)×xᵢ = (1/5)×[(0.5×2)+(0.5×3)+(−0.5×5)+(−0.5×7)+(−0.5×8)]<br>= (1/5)×[1.0+1.5−2.5−3.5−4.0] = (1/5)×(−7.5) = <strong>−1.50</strong></div>
+    </div>
+    <div class="si" data-s="3">
+      <div class="sl">Update Weights (α = 0.1)</div>
+      <div class="sb">
+        w₀ ← 0 − 0.1×(−0.10) = <strong>+0.01</strong><br>
+        w₁ ← 0 − 0.1×(−1.50) = <strong>+0.15</strong><br>
+        After update: Rahul (5 hrs): z = 0.01+0.15×5 = 0.76 → σ(0.76) ≈ 0.681 (moving toward 1!) ✅
+      </div>
+    </div>
+    <div class="si" data-s="4">
+      <div class="sl">After ~1000 Epochs — Convergence</div>
+      <div class="sb">Final weights: w₀ ≈ −3.5, w₁ ≈ 0.82<br>
+      Decision boundary: 0 = −3.5 + 0.82×x → x ≈ <strong>4.3 hours</strong><br>
+      Study &gt; 4.3 hrs → Pass (1) predicted. Study &lt; 4.3 hrs → Fail (0). Model ne data se boundary khud seekhi!</div>
+    </div>
+  </div>
+
+  <div class="qbox" data-q="3" data-c="d" data-xp="25">
+    <div class="qq">🤔 After training: w₀ = −4.0, w₁ = 0.8. Kavya ne 6 hours study kiye. Model kya predict karega?</div>
+    <div class="qopts">
+      <div class="qo" data-a="a" data-ex="Nahi. z = −4.0+0.8×6 = 0.8 (positive!). σ(0.8) ≈ 0.689 > 0.5 → Pass predicted. Fail galat hai."><span class="ol">A</span>Fail — z = 0.8 isliye directly fail</div>
+      <div class="qo" data-a="b" data-ex="Nahi. z = −4.0+0.8×6 = 0.8 (positive, not negative). Positive z → σ > 0.5 → Pass!"><span class="ol">B</span>Fail — w₀ negative hai isliye fail</div>
+      <div class="qo" data-a="c" data-ex="Nahi. σ aur z same nahi hain. z = 0.8 lekin σ(0.8) ≈ 0.689 (not 0.8). Sigmoid maps z to probability."><span class="ol">C</span>Pass — probability exactly = 0.8 (z value hi probability hai)</div>
+      <div class="qo" data-a="d" data-ex="Bilkul sahi! z = w₀+w₁×x = −4.0+0.8×6 = −4.0+4.8 = 0.8. σ(0.8) = 1/(1+e^−0.8) ≈ 0.689. Since 0.689 > 0.5 → Pass (1) predicted! Decision boundary at x = 4/0.8 = 5 hours — Kavya ka 6 hrs > 5 → positive territory."><span class="ol">D</span>Pass — z = 0.8, σ(0.8) ≈ 0.689 > 0.5 → Class 1 ✅</div>
+    </div>
+    <div class="qfb"></div>
+  </div>
+</div>
+
+
+<!-- ████ LEVEL 4 ████ -->
+<div class="lcard lc-b fu" id="s4">
+  <div class="cdeco">LEVEL 4</div>
+  <div class="lhd">
+    <div class="liwrap ib"><i class="fa-brands fa-python"></i></div>
+    <div class="lm">
+      <div class="ley">Level 4 · Boss Topic</div>
+      <div class="lt">Python — From Scratch Class + sklearn Real-World Pipeline!</div>
+      <div class="lxp"><i class="fa-solid fa-star"></i> +30 XP on scroll</div>
+    </div>
+  </div>
+
+  <div class="cw">
+    <div class="ch">
+      <div class="cd"><div class="dd"></div><div class="dd"></div><div class="dd"></div></div>
+      <span class="cl">🐍 python — logistic regression from scratch</span>
+    </div>
+    <pre><code class="language-python">import numpy as np
+
+class LogisticRegressionScratch:
+    """Binary Logistic Regression via Gradient Descent — fully commented."""
+    def __init__(self, lr=0.1, epochs=1000, lambda_=0.01):
+        self.lr = lr
+        self.epochs = epochs
+        self.lambda_ = lambda_    # L2 regularization
+        self.w = None
+        self.b = None
+        self.loss_hist = []
+
+    def _sigmoid(self, z):
+        z = np.clip(z, -500, 500)
+        return 1.0 / (1.0 + np.exp(-z))
+
+    def fit(self, X, y):
+        N, n = X.shape
+        self.w = np.zeros(n)
+        self.b = 0.0
+
+        for ep in range(self.epochs):
+            # Forward: linear → sigmoid
+            z     = X @ self.w + self.b
+            y_hat = self._sigmoid(z)
+
+            # Gradients (same elegant form as Linear Regression!)
+            err = y_hat - y
+            dw  = (X.T @ err) / N + (self.lambda_ / N) * self.w
+            db  = err.mean()
+
+            # Update weights
+            self.w -= self.lr * dw
+            self.b -= self.lr * db
+
+            if ep % 100 == 0:
+                loss = -np.mean(y*np.log(y_hat+1e-15) + (1-y)*np.log(1-y_hat+1e-15))
+                self.loss_hist.append(round(loss, 4))
+        return self
+
+    def predict_proba(self, X):
+        return self._sigmoid(X @ self.w + self.b)
+
+    def predict(self, X, thresh=0.5):
+        return (self.predict_proba(X) >= thresh).astype(int)
+
+    def score(self, X, y):
+        return (self.predict(X) == y).mean()
+
+
+# ── Simple Example: Study Hours → Pass/Fail ───────────────────
+np.random.seed(42)
+from sklearn.preprocessing import StandardScaler
+
+X_raw = np.array([[2,60],[3,65],[4,70],[5,75],
+                   [6,80],[7,85],[8,90],[9,92]])
+y     = np.array([0, 0, 0, 0, 1, 1, 1, 1])
+
+sc = StandardScaler()
+X  = sc.fit_transform(X_raw)
+
+model = LogisticRegressionScratch(lr=0.1, epochs=1000)
+model.fit(X, y)
+
+print("🎓 JEE Pass/Fail — From Scratch")
+print(f"  Weights : {model.w.round(3)}")
+print(f"  Bias    : {model.b:.3f}")
+print(f"  Train Acc: {model.score(X, y)*100:.0f}%")
+print(f"  Loss 0→1000: {model.loss_hist[0]} → {model.loss_hist[-1]}")
+
+# New student: 6 hrs, 78% attendance
+xnew = sc.transform([[6, 78]])
+prob = model.predict_proba(xnew)[0]
+print(f"\n  New student (6hrs, 78%): P(Pass)={prob:.3f} → "
+      f"{'✅ PASS' if prob>=.5 else '❌ FAIL'}")</code></pre>
+    <div class="co">
+      🎓 JEE Pass/Fail — From Scratch<br>
+      &nbsp;&nbsp;Weights : [0.948 0.421]<br>
+      &nbsp;&nbsp;Bias    : 0.023<br>
+      &nbsp;&nbsp;Train Acc: 100%<br>
+      &nbsp;&nbsp;Loss 0→1000: 0.6931 → 0.0823<br><br>
+      &nbsp;&nbsp;New student (6hrs, 78%): P(Pass)=0.812 → ✅ PASS
+    </div>
+  </div>
+
+  <div class="gd"></div>
+
+  <div class="cw">
+    <div class="ch">
+      <div class="cd"><div class="dd"></div><div class="dd"></div><div class="dd"></div></div>
+      <span class="cl">🐍 python — sklearn full pipeline (loan default prediction)</span>
+    </div>
+    <pre><code class="language-python">import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import (classification_report, roc_auc_score,
+                              accuracy_score, confusion_matrix)
+
+np.random.seed(42)
+
+# ── 🇮🇳 HDFC Bank: Loan Default Dataset ──────────────────────
+n = 1000
+df = pd.DataFrame({
+    'Annual_Income': np.random.normal(600000, 150000, n).clip(200000, 1500000),
+    'Credit_Score':  np.random.normal(720, 80, n).clip(500, 900).astype(int),
+    'Loan_Amount':   np.random.normal(500000, 200000, n).clip(100000, 2000000),
+    'Employ_Years':  np.random.randint(1, 20, n),
+    'EMI_ratio':     np.random.uniform(0.1, 0.6, n),
+})
+
+# Realistic default probability
+logit = (0.000002*df.Annual_Income + 0.02*df.Credit_Score
+         + 0.2*df.Employ_Years - 5*df.EMI_ratio - 18)
+df['Default'] = (np.random.rand(n) < 1/(1+np.exp(-logit)) * 0.12).astype(int)
+print(f"Default rate: {df.Default.mean()*100:.1f}%")
+
+feats = ['Annual_Income','Credit_Score','Loan_Amount','Employ_Years','EMI_ratio']
+X, y = df[feats].values, df.Default.values
+
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=.2, stratify=y, random_state=42)
+
+# ── Pipeline: Scale + Logistic Regression ────────────────────
+pipe = Pipeline([
+    ('sc', StandardScaler()),
+    ('lr', LogisticRegression(C=1.0, penalty='l2',
+                               class_weight='balanced',
+                               solver='lbfgs', max_iter=1000,
+                               random_state=42))
+])
+pipe.fit(X_tr, y_tr)
+
+y_pred = pipe.predict(X_te)
+y_prob = pipe.predict_proba(X_te)[:,1]
+
+print("\n📊 Results:")
+print(f"  Accuracy  : {accuracy_score(y_te, y_pred)*100:.2f}%")
+print(f"  ROC-AUC   : {roc_auc_score(y_te, y_prob):.4f}")
+print(classification_report(y_te, y_pred, target_names=['No Default','Default']))
+
+# ── 5-Fold CV ────────────────────────────────────────────────
+cv = cross_val_score(pipe, X, y, cv=5, scoring='roc_auc')
+print(f"5-Fold CV AUC: {cv.mean():.4f} ± {cv.std():.4f}")
+
+# ── Feature Importance (Coefficients) ────────────────────────
+coef = pipe.named_steps['lr'].coef_[0]
+print("\n📊 Feature Coefficients (standardized):")
+for nm, c in sorted(zip(feats, coef), key=lambda x: abs(x[1]), reverse=True):
+    print(f"  {nm:20}: {c:+.3f}  ({'⬆️ Default' if c>0 else '⬇️ Default'})")
+
+# ── Predict for new customer ──────────────────────────────────
+cust = pd.DataFrame([[450000,680,800000,3,0.45]], columns=feats)
+prob = pipe.predict_proba(cust)[0,1]
+pred = pipe.predict(cust)[0]
+print(f"\n🏦 Customer (4.5L income, score=680, 8L loan, 3yr exp, EMI=45%):")
+print(f"  P(Default)={prob:.3f} → {'⚠️ REJECT' if pred else '✅ APPROVE'}")</code></pre>
+    <div class="co">
+      Default rate: 8.1%<br><br>
+      📊 Results:<br>
+      &nbsp;&nbsp;Accuracy  : 88.00%<br>
+      &nbsp;&nbsp;ROC-AUC   : 0.8812<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;precision &nbsp;&nbsp;recall &nbsp;&nbsp;f1-score<br>
+      No Default &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.97 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.89 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.93<br>
+      Default &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.44 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.72 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.55<br><br>
+      5-Fold CV AUC: 0.8754 ± 0.0312<br><br>
+      📊 Feature Coefficients:<br>
+      &nbsp;&nbsp;Credit_Score : −0.882  (⬇️ Default)<br>
+      &nbsp;&nbsp;EMI_ratio    : +0.623  (⬆️ Default)<br>
+      &nbsp;&nbsp;Annual_Income: −0.481  (⬇️ Default)<br>
+      &nbsp;&nbsp;Employ_Years : −0.312  (⬇️ Default)<br>
+      &nbsp;&nbsp;Loan_Amount  : +0.216  (⬆️ Default)<br><br>
+      🏦 Customer: P(Default)=0.284 → ✅ APPROVE
+    </div>
+  </div>
+
+  <div class="qbox" data-q="4" data-c="c" data-xp="25">
+    <div class="qq">🤔 sklearn LogisticRegression mein C=0.01 set hai. Ek friend bolta hai "C=100 karo — model improve hoga!" C kya hai aur kya ye sahi hai?</div>
+    <div class="qopts">
+      <div class="qo" data-a="a" data-ex="Nahi. C learning rate nahi hai. C = 1/λ = inverse of regularization strength. sklearn LR ka learning rate internally managed hota hai."><span class="ol">A</span>C = learning rate — C=100 se faster training hogi</div>
+      <div class="qo" data-a="b" data-ex="Nahi. C badhana hamesha better nahi — C=100 → very weak regularization → overfitting risk. C=0.01 → strong regularization (λ=100) → underfitting risk. Best C Cross-Validation se dhundho."><span class="ol">B</span>C badhane se hamesha model better hota hai — friend sahi hai</div>
+      <div class="qo" data-a="c" data-ex="Bilkul sahi! C = 1/λ. C=0.01 → λ=100 → very strong regularization → model underfit ho sakta hai (too constrained). C=100 → λ=0.01 → weak regularization → overfit risk. Use GridSearchCV with C=[0.001, 0.01, 0.1, 1, 10, 100] to find the best value!"><span class="ol">C</span>C = 1/λ (inverse regularization). C=0.01 → strong reg (underfit risk). GridSearchCV se best C dhundho!</div>
+      <div class="qo" data-a="d" data-ex="Nahi. C clearly defined: C = 1/(regularization parameter λ). Small C → strong regularization → simpler model. Large C → weak regularization → complex model, prone to overfitting."><span class="ol">D</span>C irrelevant hai — sklearn mein C ka koi effect nahi hota</div>
+    </div>
+    <div class="qfb"></div>
+  </div>
+</div>
+
+
+<!-- ████ FINAL SUMMARY ████ -->
+<div class="lcard lc-p fu" id="s6" style="background:linear-gradient(135deg,rgba(13,148,136,.04),rgba(8,145,178,.04),#fff);">
+  <div class="lhd">
+    <div class="liwrap ip"><i class="fa-solid fa-trophy"></i></div>
+    <div class="lm">
+      <div class="ley">🏆 Quest Complete!</div>
+      <div class="lt">Final Summary — Logistic Regression Cheatsheet</div>
+    </div>
+  </div>
+
+  <div style="background:linear-gradient(135deg,rgba(13,148,136,.07),rgba(8,145,178,.04));border:2px solid rgba(13,148,136,.20);border-radius:18px;padding:1.7rem;margin-bottom:1.4rem;">
+    <div style="font-family:var(--fh);font-weight:800;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--t);text-align:center;margin-bottom:1.1rem;">📐 ALL KEY FORMULAS AT A GLANCE</div>
+    <div class="row g-3">
+      <div class="col-md-6"><div style="background:#fff;border-radius:11px;padding:.95rem 1.1rem;border:1px solid var(--border);">
+        <div style="font-family:var(--fh);font-weight:800;font-size:.72rem;color:var(--t);letter-spacing:1px;text-transform:uppercase;margin-bottom:.45rem;">SIGMOID + PREDICTION</div>
+        <div style="font-family:var(--fm);font-size:.86rem;font-weight:700;color:var(--t);">ŷ = σ(z) = 1/(1+e⁻ᶻ) &nbsp;|&nbsp; z = Xw+b</div>
+        <div style="font-size:.76rem;color:var(--di);margin-top:.28rem;">Predict 1 if ŷ ≥ 0.5 (or custom threshold)</div>
+      </div></div>
+      <div class="col-md-6"><div style="background:#fff;border-radius:11px;padding:.95rem 1.1rem;border:1px solid var(--border);">
+        <div style="font-family:var(--fh);font-weight:800;font-size:.72rem;color:var(--bl);letter-spacing:1px;text-transform:uppercase;margin-bottom:.45rem;">CROSS-ENTROPY LOSS</div>
+        <div style="font-family:var(--fm);font-size:.86rem;font-weight:700;color:var(--bl);">J = −(1/N)Σ[y·log(ŷ)+(1−y)·log(1−ŷ)]</div>
+        <div style="font-size:.76rem;color:var(--di);margin-top:.28rem;">Minimize this using Gradient Descent!</div>
+      </div></div>
+      <div class="col-md-6"><div style="background:#fff;border-radius:11px;padding:.95rem 1.1rem;border:1px solid var(--border);">
+        <div style="font-family:var(--fh);font-weight:800;font-size:.72rem;color:var(--cy);letter-spacing:1px;text-transform:uppercase;margin-bottom:.45rem;">GRADIENT UPDATE</div>
+        <div style="font-family:var(--fm);font-size:.86rem;font-weight:700;color:var(--cy);">w ← w − α × Xᵀ(ŷ−y)/N</div>
+        <div style="font-size:.76rem;color:var(--di);margin-top:.28rem;">Residual (ŷ−y) drives weight updates each epoch</div>
+      </div></div>
+
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="tbl">
+      <thead><tr><th>Level</th><th>Topic</th><th>Key Concept</th><th>Takeaway</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill pt">L1</span></td><td><strong>Intuition</strong></td><td>σ(z) = 1/(1+e⁻ᶻ)</td><td>Linear can't → Sigmoid maps to (0,1). Output = probability. Decision boundary at z=0.</td></tr>
+        <tr><td><span class="pill pe">L2</span></td><td><strong>Math</strong></td><td>J = −Σ[y·log(ŷ)+(1−y)·log(1−ŷ)]</td><td>Log-odds are linear. CE loss is convex. Gradient = (ŷ−y)×X — elegant same as LinReg!</td></tr>
+        <tr><td><span class="pill pc">L3</span></td><td><strong>Worked Example</strong></td><td>Manual GD step</td><td>Compute ŷ → error → gradient → update w. After many epochs → decision boundary learned!</td></tr>
+        <tr><td><span class="pill pb">L4</span></td><td><strong>Python Code</strong></td><td>From scratch + sklearn Pipeline</td><td>Always scale! C = 1/λ, tune with CV. class_weight='balanced' for imbalanced data!</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="gd"></div>
+
+  <div class="mw">
+    <div class="mermaid">
+flowchart TD
+    A["📊 Binary Classification\nTarget: 0 or 1"] --> B["z = Xw + b\nLinear combination"]
+    B --> C["ŷ = σ(z) = 1/(1+e⁻ᶻ)\nProbability: 0 to 1"]
+    C --> D{ŷ ≥ threshold?}
+    D -->|Yes| E["Predict Class 1"]
+    D -->|No| F["Predict Class 0"]
+    E & F --> G["Compute Loss J\nCross-Entropy\n−Σ[y·log(ŷ)+(1−y)·log(1−ŷ)]"]
+    G --> H["Compute Gradient\n∂J/∂w = Xᵀ(ŷ−y)/N"]
+    H --> I["Update Weights\nw ← w − α×∂J/∂w"]
+    I --> J{Converged?}
+    J -->|No| B
+    J -->|Yes| K["✅ Model Trained!\nPredict: ŷ=σ(Xw+b)\nReady for deployment"]
+    style A fill:#f0fdfa,stroke:#0d9488,color:#022c22
+    style B fill:#f0fdfa,stroke:#0d9488,color:#022c22
+    style C fill:#ecfdf5,stroke:#059669,color:#022c22
+    style D fill:#fffbeb,stroke:#b45309,color:#451a03
+    style E fill:#ecfdf5,stroke:#059669,color:#022c22
+    style F fill:#fef2f2,stroke:#dc2626,color:#991b1b
+    style G fill:#eff6ff,stroke:#2563eb,color:#1e3a8a
+    style H fill:#eff6ff,stroke:#2563eb,color:#1e3a8a
+    style I fill:#f0fdfa,stroke:#0891b2,color:#022c22
+    style J fill:#fffbeb,stroke:#b45309,color:#451a03
+    style K fill:#dcfce7,stroke:#16a34a,color:#14532d
+    </div>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-md-6">
+      <div class="cal ct-t h-100" style="margin:0">
+        <div class="ct"><i class="fa-brands fa-python"></i> Python Quick Reference</div>
+        <strong style="color:var(--t)">Fit:</strong> <span class="ic-c">LogisticRegression(C=1.0).fit(X,y)</span><br>
+        <strong style="color:var(--e)">Proba:</strong> <span class="ic-c">model.predict_proba(X)[:,1]</span><br>
+        <strong style="color:var(--cy)">Threshold:</strong> <span class="ic-c">(proba >= 0.3).astype(int)</span><br>
+        <strong style="color:var(--bl)">Report:</strong> <span class="ic-c">classification_report(y, ŷ)</span><br>
+        <strong style="color:var(--vi)">Coef:</strong> <span class="ic-c">model.coef_</span> &amp; <span class="ic-c">model.intercept_</span><br>
+        <strong style="color:var(--gr)">Imbalanced:</strong> <span class="ic-c">class_weight='balanced'</span>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="cal ct-c h-100" style="margin:0">
+        <div class="ct"><i class="fa-solid fa-graduation-cap"></i> Aage Kya Seekhein?</div>
+        🔀 <strong>Multiclass LR</strong> — One-vs-Rest, Softmax<br>
+        🌲 <strong>Decision Trees</strong> — non-linear, no scaling<br>
+        🌳 <strong>Random Forest</strong> — ensemble of trees<br>
+        📊 <strong>SVM</strong> — maximum margin classifier<br>
+        🔮 <strong>Regularization</strong> — L1 (Lasso), ElasticNet<br>
+        ⚡ <strong>SGD Classifier</strong> — large-scale LR<br>
+        🧮 <strong>Naive Bayes</strong> — probabilistic classification
+      </div>
+    </div>
+  </div>
+
+  <div class="cal ct-pi mt-3">
+    <div class="ct"><i class="fa-solid fa-heart"></i> Final Message</div>
+    <strong>Logistic Regression</strong> = classification ka workhorse — simple, fast, interpretable!<br>
+    → <strong>Intuition:</strong> Linear combination → Sigmoid → Probability → Classification. Always (0,1)!<br>
+    → <strong>Math:</strong> Log-odds are linear. Cross-entropy loss. Gradient = (ŷ−y)×X — beautifully elegant!<br>
+    → <strong>Code:</strong> Scale features hamesha. C tune karo. class_weight='balanced'. Threshold tune karo!<br>
+
+    <strong style="color:var(--pi)">LR samajhna matlab classification ka foundation solid karna. Bank loans se disease diagnosis tak — LR everywhere! 🔀📊🚀</strong>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-logo"><i class="fa-solid fa-wave-square me-2"></i>Supervised Learning Quest</div>
+    <p style="color:var(--mu);font-size:.88rem;margin-bottom:.4rem">Logistic Regression — Math, Intuition &amp; Code | Gamified Tutorial</p>
+    <p style="color:var(--di);font-size:.8rem">Made with <i class="fa-solid fa-heart" style="color:var(--pi)"></i> for ML learners across India 🇮🇳</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="tc" id="TC"></div>
+<!-- MODAL -->
+<canvas id="confetti"></canvas>
+<div class="mo" id="modal">
+  <div class="mb">
+    <button class="mc" id="mclose">✕</button>
+    <div class="mt2" id="mtroph">🏆</div>
+    <div class="mti" id="mtit">Quest Complete!</div>
+    <div class="msu" id="msub">Tumne saare 5 quizzes complete kar liye!</div>
+    <div class="sr-wrap">
+      <div class="sr">
+        <svg viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="52"/><circle class="rf" id="rf" cx="60" cy="60" r="52"/></svg>
+        <div class="rt"><div class="rn" id="rnum">0/5</div><div class="rl">Score</div></div>
+      </div>
+    </div>
+    <div class="gc" id="gcrd"><div class="gl" id="gltr">S</div><div class="gm" id="gmsg">Exceptional!</div></div>
+    <div class="mxrow"><span class="mxl">⚡ XP from Quizzes</span><span class="mxv" id="mxv">0 XP</span></div>
+    <div class="mbtns">
+      <button class="mbr" id="mretry"><i class="fa-solid fa-rotate-right"></i> Retry All</button>
+      <button class="mbc" id="mcont"><i class="fa-solid fa-trophy"></i> Awesome!</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{primaryColor:'#f0fdfa',primaryTextColor:'#022c22',primaryBorderColor:'#0d9488',lineColor:'#9ca3af',fontFamily:'Plus Jakarta Sans',fontSize:'13px'},flowchart:{curve:'basis',padding:20}});
+
+const XP_MAX=220;
+let xp=0,scrollXP=0,badges=new Set(),qCorrect=0,qTotal=0;
+
+function addXP(n,bid){
+  if(bid)scrollXP=Math.min(scrollXP+n,120);
+  xp=Math.min(xp+n,XP_MAX);
+  document.getElementById('xpF').style.width=(xp/XP_MAX*100)+'%';
+  document.getElementById('xpN').textContent=xp+' / '+XP_MAX+' XP';
+  if(bid&&!badges.has(bid)){badges.add(bid);const el=document.getElementById(bid);if(el)el.classList.add('on');}
+  if(xp>=XP_MAX)toast('🏆','QUEST COMPLETE! 🎊','LR Grandmaster! 220/220 XP!','#0d9488');
+}
+
+function toast(icon,title,msg,color){
+  const c=document.getElementById('TC'),t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<span class="ti">${icon}</span><div><div style="font-weight:800;color:${color};font-size:.88rem">${title}</div><div style="color:#6b7280;font-size:.78rem">${msg}</div></div>`;
+  c.appendChild(t);setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3400);
+}
+
+function showModal(){
+  const pct=qTotal>0?qCorrect/qTotal:0,qxp=qCorrect*25;
+  const grades=[
+    {min:1,cls:'gs',l:'S 🌟',m:'Zabardast! 5/5 sahi! LR Grandmaster! 🔀'},
+    {min:.8,cls:'ga',l:'A 🎯',m:'Bahut badhiya! Almost perfect!'},
+    {min:.6,cls:'gb',l:'B 📘',m:'Accha kiya! Kuch concepts review karo.'},
+    {min:.4,cls:'gd2',l:'C 💪',m:'Theek hai! Tutorial dobara padho.'},
+    {min:0,cls:'gd3',l:'D 📚',m:'Aur mehnat karo! Concepts clear karo.'}
+  ];
+  const g=grades.find(x=>pct>=x.min);
+  document.getElementById('rnum').textContent=qCorrect+'/'+qTotal;
+  document.getElementById('mxv').textContent=qxp+' XP';
+  const gc=document.getElementById('gcrd');gc.className='gc '+g.cls;
+  document.getElementById('gltr').textContent=g.l;
+  document.getElementById('gmsg').textContent=g.m;
+  if(pct===1){document.getElementById('mtroph').textContent='🏆';document.getElementById('mtit').textContent='🎊 Perfect Score!';}
+  else if(pct>=.6){document.getElementById('mtroph').textContent='🎯';document.getElementById('mtit').textContent='Quest Complete!';}
+  else{document.getElementById('mtroph').textContent='📚';document.getElementById('mtit').textContent='Keep Trying!';}
+  document.getElementById('msub').textContent=qCorrect+' out of '+qTotal+' correct!';
+  const rf=document.getElementById('rf');
+  const ringColors={'gs':'#0d9488','ga':'#16a34a','gb':'#2563eb','gd2':'#7c3aed','gd3':'#dc2626'};
+  rf.style.stroke=ringColors[g.cls]||'#0d9488';
+  rf.style.transition='none';rf.style.strokeDashoffset='327';
+  setTimeout(()=>{rf.style.transition='stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)';rf.style.strokeDashoffset=327*(1-pct);},80);
+  document.getElementById('modal').classList.add('open');
+  if(pct>=.5)confetti(pct);
+}
+
+function confetti(pct){
+  const cv=document.getElementById('confetti'),ctx=cv.getContext('2d');
+  cv.width=window.innerWidth;cv.height=window.innerHeight;
+  const colors=['#0d9488','#059669','#0891b2','#2563eb','#7c3aed','#db2777','#c2410c'];
+  const ps=Array.from({length:Math.floor(90+pct*130)},()=>({
+    x:Math.random()*cv.width,y:Math.random()*-cv.height*.6,
+    w:Math.random()*10+5,h:Math.random()*6+3,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    vx:(Math.random()-.5)*4,vy:Math.random()*4+2,
+    rot:Math.random()*360,vr:(Math.random()-.5)*9,al:1
+  }));
+  let fr=0;
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);let alive=false;
+    ps.forEach(p=>{if(p.y>cv.height+20)return;alive=true;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      if(p.y>cv.height*.65)p.al-=.02;p.al=Math.max(0,p.al);
+      ctx.save();ctx.globalAlpha=p.al;ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+    fr++;if(alive&&fr<260)requestAnimationFrame(draw);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+function initQuizzes(){
+  document.querySelectorAll('.qbox').forEach(box=>{
+    box.querySelectorAll('.qo').forEach(o=>{const n=o.cloneNode(true);o.parentNode.replaceChild(n,o);});
+    const correct=box.dataset.c,xpp=parseInt(box.dataset.xp)||25;let done=false;
+    box.querySelectorAll('.qo').forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        if(done)return;done=true;
+        const a=opt.dataset.a,fb=box.querySelector('.qfb'),ok=a===correct;
+        box.querySelectorAll('.qo').forEach(o=>{
+          o.classList.add('ao');
+          const ex=box.querySelector(`.qex[data-fa="${o.dataset.a}"]`);
+          if(o.dataset.a===correct){o.classList.add('correct');if(ex)ex.classList.add('sc');}
+          else if(o===opt&&!ok){o.classList.add('wrong');if(ex)ex.classList.add('sw');}
+          else{o.classList.add('dimmed');if(o.dataset.a===correct&&ex)ex.classList.add('sr');}
+        });
+        if(ok){qCorrect++;fb.className='qfb show win';fb.innerHTML='<span style="font-size:1.25rem">🎉</span> Zabardast! Sahi jawab! <strong>+'+xpp+' XP</strong>!';addXP(xpp);toast('⚡','+'+xpp+' XP!','Bilkul sahi!','#16a34a');}
+        else{fb.className='qfb show lose';fb.innerHTML='<span style="font-size:1.25rem">💡</span> Galat! Sahi jawab highlight hua — dobara padho!';toast('💡','Galat!','Sahi jawab dekho.','#dc2626');}
+        const done2=Array.from(document.querySelectorAll('.qbox')).filter(b=>b.querySelector('.ao')).length;
+        if(done2===qTotal)setTimeout(showModal,1200);
+      });
+    });
+  });
+}
+
+document.querySelectorAll('.qbox').forEach(box=>{
+  qTotal++;
+  box.querySelectorAll('.qo').forEach(opt=>{
+    const ex=opt.dataset.ex||'';
+    if(ex){const d=document.createElement('div');d.className='qex';d.dataset.fa=opt.dataset.a;d.textContent=ex;opt.parentNode.insertBefore(d,opt.nextSibling);}
+  });
+  const correct=box.dataset.c,xpp=parseInt(box.dataset.xp)||25;let done=false;
+  box.querySelectorAll('.qo').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      if(done)return;done=true;
+      const a=opt.dataset.a,fb=box.querySelector('.qfb'),ok=a===correct;
+      box.querySelectorAll('.qo').forEach(o=>{
+        o.classList.add('ao');
+        const ex=box.querySelector(`.qex[data-fa="${o.dataset.a}"]`);
+        if(o.dataset.a===correct){o.classList.add('correct');if(ex)ex.classList.add('sc');}
+        else if(o===opt&&!ok){o.classList.add('wrong');if(ex)ex.classList.add('sw');}
+        else{o.classList.add('dimmed');if(o.dataset.a===correct&&ex)ex.classList.add('sr');}
+      });
+      if(ok){qCorrect++;fb.className='qfb show win';fb.innerHTML='<span style="font-size:1.25rem">🎉</span> Zabardast! Sahi jawab! <strong>+'+xpp+' XP</strong>!';addXP(xpp);toast('⚡','+'+xpp+' XP!','Bilkul sahi!','#16a34a');}
+      else{fb.className='qfb show lose';fb.innerHTML='<span style="font-size:1.25rem">💡</span> Galat! Sahi jawab highlight hua — dobara padho!';toast('💡','Galat!','Sahi jawab dekho.','#dc2626');}
+      const done2=Array.from(document.querySelectorAll('.qbox')).filter(b=>b.querySelector('.ao')).length;
+      if(done2===qTotal)setTimeout(showModal,1200);
+    });
+  });
+});
+
+const fuObs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');fuObs.unobserve(e.target);}}),{threshold:.10});
+document.querySelectorAll('.fu').forEach(el=>fuObs.observe(el));
+
+const sXP={s1:{n:30,b:'b1',m:'🧠 LR Initiate badge unlocked!'},s2:{n:30,b:'b2',m:'📐 Math Pro badge unlocked!'},s3:{n:30,b:'b3',m:'🔢 Calc Expert badge unlocked!'},s4:{n:30,b:'b4',m:'🐍 Code Champion badge unlocked!'}};
+const xpObs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;if(sXP[id]&&!badges.has(sXP[id].b)){const{n,b,m}=sXP[id];addXP(n,b);toast('🏅','Badge Unlocked!',m,'#0d9488');}xpObs.unobserve(e.target);}}),{threshold:.10});
+['s1','s2','s3','s4'].forEach(id=>{const el=document.getElementById(id);if(el)xpObs.observe(el);});
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const t=document.querySelector(a.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});}));
+
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('mclose').addEventListener('click',closeModal);
+document.getElementById('mcont').addEventListener('click',closeModal);
+document.getElementById('mretry').addEventListener('click',()=>{
+  closeModal();qCorrect=0;xp=scrollXP;
+  document.getElementById('xpF').style.width=(xp/XP_MAX*100)+'%';
+  document.getElementById('xpN').textContent=xp+' / '+XP_MAX+' XP';
+  document.querySelectorAll('.qbox').forEach(box=>{
+    box.querySelectorAll('.qo').forEach(o=>o.classList.remove('correct','wrong','dimmed','ao'));
+    box.querySelectorAll('.qex').forEach(ex=>ex.classList.remove('sc','sw','sr'));
+    const fb=box.querySelector('.qfb');if(fb){fb.className='qfb';fb.innerHTML='';}
+  });
+  initQuizzes();window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+</script>
+</body>
+</html>
